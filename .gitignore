@@ -125,3 +125,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Api folder
+./api
