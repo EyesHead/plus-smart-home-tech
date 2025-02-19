@@ -4,31 +4,33 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
-import ru.yandex.practicum.kafka.telemetry.event.SensorEvent;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class SensorEventSerializer implements Serializer<SensorEvent> {
+public class SensorEventAvroSerializer implements Serializer<SensorEventAvro> {
     private final EncoderFactory encoderFactory = EncoderFactory.get();
     private BinaryEncoder encoder;
+    private static final DatumWriter<SensorEventAvro> WRITER =
+            new SpecificDatumWriter<>(SensorEventAvro.class);
+
 
     @Override
-    public byte[] serialize(String topic, SensorEvent data) {
+    public byte[] serialize(String topic, SensorEventAvro data) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            byte[] result = null;
+            if (data == null) return null;
+
+            byte[] result;
+
             encoder = encoderFactory.binaryEncoder(out, encoder);
-            if (data != null) {
-                DatumWriter<SpecificRecordBase> writer = new SpecificDatumWriter<>(data.getSchema());
 
-                writer.write(data, encoder);
-                encoder.flush();
+            WRITER.write(data, encoder);
+            encoder.flush();
 
-                result = out.toByteArray();
-            }
+            result = out.toByteArray();
             return result;
         } catch (IOException ex) {
             throw new SerializationException("Ошибка сериализации данных для топика [" + topic + "]", ex);

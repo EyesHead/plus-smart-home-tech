@@ -1,4 +1,4 @@
-package ru.yandex.practicum.sensor.mapper;
+package ru.yandex.practicum.sensor.service;
 
 import ru.yandex.practicum.kafka.telemetry.event.*;
 import ru.yandex.practicum.sensor.model.*;
@@ -6,8 +6,8 @@ import ru.yandex.practicum.sensor.model.SensorEvent;
 
 public class SensorEventAvroMapper {
 
-    public static ru.yandex.practicum.kafka.telemetry.event.SensorEvent toAvro(SensorEvent event) {
-        var avroEvent = new ru.yandex.practicum.kafka.telemetry.event.SensorEvent();
+    public static SensorEventAvro toAvro(SensorEvent event) {
+        var avroEvent = new SensorEventAvro();
         avroEvent.setId(event.getId());
         avroEvent.setHubId(event.getHubId());
         avroEvent.setTimestamp(event.getTimestamp().toEpochMilli());

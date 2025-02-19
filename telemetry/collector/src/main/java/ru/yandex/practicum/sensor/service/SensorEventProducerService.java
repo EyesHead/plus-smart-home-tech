@@ -1,30 +1,32 @@
 package ru.yandex.practicum.sensor.service;
 
-import ru.yandex.practicum.config.KafkaSensorEventProperties;
+import jakarta.annotation.PreDestroy;
+import ru.yandex.practicum.config.KafkaProducerSensorEventConfig;
 import ru.yandex.practicum.config.TopicNames;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.kafka.telemetry.event.SensorEvent;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 @Component
 public class SensorEventProducerService {
-    private Producer<Void, SensorEvent> producer;
+    private static final Producer<Void, SensorEventAvro> producer;
 
-    public void send(SensorEvent event) {
-        if (producer == null) {
-            producer = new KafkaProducer<>(KafkaSensorEventProperties.init());
-        }
+    static {
+        producer = new KafkaProducer<>(KafkaProducerSensorEventConfig.init());
+    }
 
-        ProducerRecord<Void, SensorEvent> record =
+    public void send(SensorEventAvro event) {
+        ProducerRecord<Void, SensorEventAvro> record =
                 new ProducerRecord<>(TopicNames.TELEMETRY_SENSORS_TOPIC, event);
 
         producer.send(record);
         producer.flush();
     }
 
-//    public void close() {
-//        producer.close();
-//    }
+    @PreDestroy
+    public void close() {
+        producer.close();
+    }
 }
