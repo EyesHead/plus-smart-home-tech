@@ -5,8 +5,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.server.service.GrpcService;
-import ru.yandex.practicum.grpc.telemetry.collector.CollectorControllerGrpc;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.sensor.service.SensorEventHandler;
 
@@ -15,9 +14,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@GrpcService
 @Slf4j
-public class SensorEventControllerGrpc extends CollectorControllerGrpc.CollectorControllerImplBase {
+@Component
+public class SensorEventControllerGrpc {
     private final Map<SensorEventProto.PayloadCase, SensorEventHandler> sensorEventHandlers;
 
     public SensorEventControllerGrpc(Set<SensorEventHandler> sensorEventHandlers) {
@@ -35,7 +34,6 @@ public class SensorEventControllerGrpc extends CollectorControllerGrpc.Collector
      * @param request           Событие от датчика
      * @param responseObserver  Ответ для клиента
      */
-    @Override
     public void collectSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
         SensorEventProto.PayloadCase sensorType = request.getPayloadCase();
 

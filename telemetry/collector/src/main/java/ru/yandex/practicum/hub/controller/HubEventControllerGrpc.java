@@ -5,8 +5,7 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.server.service.GrpcService;
-import ru.yandex.practicum.grpc.telemetry.collector.CollectorControllerGrpc;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.hub.service.HubEventHandler;
 
@@ -16,8 +15,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-@GrpcService
-public class HubEventControllerGrpc extends CollectorControllerGrpc.CollectorControllerImplBase {
+@Component
+public class HubEventControllerGrpc {
     Map<HubEventProto.PayloadCase, HubEventHandler> hubEventHandlers;
 
     public HubEventControllerGrpc(Set<HubEventHandler> hubEventHandlers) {
@@ -35,7 +34,6 @@ public class HubEventControllerGrpc extends CollectorControllerGrpc.CollectorCon
      * @param request           Событие от датчика
      * @param responseObserver  Ответ для клиента
      */
-    @Override
     public void collectHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
         try {
             if (hubEventHandlers.containsKey(request.getPayloadCase())) {
