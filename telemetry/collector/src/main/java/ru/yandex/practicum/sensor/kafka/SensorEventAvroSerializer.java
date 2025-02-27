@@ -1,4 +1,4 @@
-package ru.yandex.practicum.sensor.service;
+package ru.yandex.practicum.sensor.kafka;
 
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
@@ -33,7 +33,7 @@ public class SensorEventAvroSerializer implements Serializer<SensorEventAvro> {
             result = out.toByteArray();
             return result;
         } catch (IOException ex) {
-            throw new SerializationException("Ошибка сериализации данных для топика [" + topic + "]", ex);
+            throw new SerializationException("Data serialization error for topic [" + topic + "]", ex);
         }
     }
 }

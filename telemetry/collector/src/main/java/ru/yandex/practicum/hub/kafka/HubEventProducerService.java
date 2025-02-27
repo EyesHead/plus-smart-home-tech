@@ -1,4 +1,4 @@
-package ru.yandex.practicum.hub.service;
+package ru.yandex.practicum.hub.kafka;
 
 import jakarta.annotation.PreDestroy;
 import org.apache.kafka.clients.producer.KafkaProducer;

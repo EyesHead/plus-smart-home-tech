@@ -2,7 +2,7 @@ package ru.yandex.practicum.config;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.VoidSerializer;
-import ru.yandex.practicum.sensor.service.SensorEventAvroSerializer;
+import ru.yandex.practicum.sensor.kafka.SensorEventAvroSerializer;
 
 import java.util.Properties;
 

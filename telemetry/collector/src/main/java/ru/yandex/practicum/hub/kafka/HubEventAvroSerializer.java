@@ -1,4 +1,4 @@
-package ru.yandex.practicum.hub.service;
+package ru.yandex.practicum.hub.kafka;
 
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
@@ -12,25 +12,28 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class HubEventAvroSerializer implements Serializer<HubEventAvro> {
+    private final EncoderFactory encoderFactory = EncoderFactory.get();
+    private BinaryEncoder encoder;
     private static final DatumWriter<HubEventAvro> WRITER =
             new SpecificDatumWriter<>(HubEventAvro.class);
 
+
     @Override
     public byte[] serialize(String topic, HubEventAvro data) {
-        if (data == null) return null;
-
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(out, null);
+            if (data == null) return null;
 
-            // Сериализуем весь объект HubEventAvro
+            byte[] result;
+
+            encoder = encoderFactory.binaryEncoder(out, encoder);
+
             WRITER.write(data, encoder);
             encoder.flush();
 
-            return out.toByteArray();
+            result = out.toByteArray();
+            return result;
         } catch (IOException ex) {
-            throw new SerializationException(
-                    "Ошибка сериализации HubEventAvro для топика [" + topic + "]", ex);
+            throw new SerializationException("Data serialization error for topic [" + topic + "]", ex);
         }
-
     }
 }

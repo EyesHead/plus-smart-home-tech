@@ -1,12 +1,12 @@
-package ru.yandex.practicum.sensor.service;
+package ru.yandex.practicum.sensor.kafka;
 
 import jakarta.annotation.PreDestroy;
-import ru.yandex.practicum.config.KafkaProducerSensorEventConfig;
-import ru.yandex.practicum.config.TopicNames;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.config.KafkaProducerSensorEventConfig;
+import ru.yandex.practicum.config.TopicNames;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 @Component

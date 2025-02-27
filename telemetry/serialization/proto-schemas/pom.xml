@@ -14,31 +14,17 @@
     <dependencies>
         <dependency>
             <groupId>io.grpc</groupId>
-            <artifactId>grpc-stub</artifactId>
+            <artifactId>grpc-protobuf</artifactId>
         </dependency>
 
         <dependency>
             <groupId>io.grpc</groupId>
-            <artifactId>grpc-protobuf</artifactId>
-        </dependency>
-
-        <!-- Until gRPC generator library moves to generated jakarta instead of javax -->
-        <!-- https://github.com/grpc/grpc-java/issues/9179 -->
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-            <version>1.3.5</version>
-            <optional>true</optional>
+            <artifactId>grpc-stub</artifactId>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-
             <plugin>
                 <groupId>io.github.ascopes</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
@@ -84,5 +70,6 @@
                 </executions>
             </plugin>
         </plugins>
+
     </build>
 </project>
