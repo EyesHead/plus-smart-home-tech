@@ -6,6 +6,7 @@ import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.hub.service.HubEventHandler;
 
@@ -32,7 +33,7 @@ public class HubEventControllerGrpc {
      * Вызывается при получении регистрации нового датчика от gRPC-клиента.
      *
      * @param request           Событие от датчика
-     * @param responseObserver  Ответ для клиента
+     * @param responseObserver  Ответ для клиента - Empty
      */
     public void collectHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
         try {

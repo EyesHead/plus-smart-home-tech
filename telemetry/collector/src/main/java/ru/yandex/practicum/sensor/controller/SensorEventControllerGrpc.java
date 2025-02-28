@@ -32,7 +32,7 @@ public class SensorEventControllerGrpc {
      * Вызывается при получении нового события от gRPC-клиента.
      *
      * @param request           Событие от датчика
-     * @param responseObserver  Ответ для клиента
+     * @param responseObserver  Ответ для клиента - Empty
      */
     public void collectSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
         SensorEventProto.PayloadCase sensorType = request.getPayloadCase();
