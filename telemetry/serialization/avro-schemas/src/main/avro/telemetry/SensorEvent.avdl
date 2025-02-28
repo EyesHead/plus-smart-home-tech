@@ -29,7 +29,7 @@ protocol SensorEventProtocol {
 	record SensorEventAvro {
 		string id;
 		string hubId;
-		long timestamp;
+		timestamp_ms timestamp;
 		union { ClimateSensor, LightSensor, MotionSensor, SwitchSensor, TemperatureSensor } payload;
 	}
 }

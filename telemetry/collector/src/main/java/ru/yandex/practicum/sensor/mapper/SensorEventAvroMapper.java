@@ -60,10 +60,7 @@ public class SensorEventAvroMapper {
 
         avroEvent.setId(protoSensorEvent.getId());
         avroEvent.setHubId(protoSensorEvent.getHubId());
-        avroEvent.setTimestamp(Instant.ofEpochSecond(
-                        protoTimestamp.getSeconds(),
-                        protoTimestamp.getNanos())
-                .toEpochMilli());
+        avroEvent.setTimestamp(Instant.ofEpochSecond(protoTimestamp.getSeconds()));
         return avroEvent;
     }
 }
