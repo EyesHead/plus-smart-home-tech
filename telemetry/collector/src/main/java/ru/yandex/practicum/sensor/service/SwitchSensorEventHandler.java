@@ -27,7 +27,7 @@ public class SwitchSensorEventHandler implements SensorEventHandler {
                         sensorEventProto,
                         SensorEventProto.PayloadCase.SWITCH_SENSOR_EVENT);
 
-        producerService.send(sensorEventAvro);
         log.info("Response - switch sensor event in avro: {}", sensorEventAvro);
+        producerService.send(sensorEventAvro);
     }
 }

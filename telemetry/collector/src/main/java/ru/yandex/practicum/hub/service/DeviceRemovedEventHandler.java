@@ -22,7 +22,7 @@ public class DeviceRemovedEventHandler implements HubEventHandler {
     @Override
     public void handle(HubEventProto hubEventProto) {
         log.info("Request - DeviceRemovedEvent in proto: {}", hubEventProto);
-        HubEventAvro hubEventAvro = HubEventAvroMapper.toAvro(hubEventProto);
+        HubEventAvro hubEventAvro = HubEventAvroMapper.mapToAvro(hubEventProto);
 
         producerService.send(hubEventAvro);
         log.info("DeviceRemovedEvent was send to topic: {}", hubEventAvro);

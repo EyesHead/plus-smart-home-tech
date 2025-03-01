@@ -22,7 +22,7 @@ public class DeviceAddedEventHandler implements HubEventHandler {
     @Override
     public void handle(HubEventProto hubEventProto) {
         log.info("Request - DeviceAddedEvent in proto: {}", hubEventProto);
-        HubEventAvro hubEventAvro = HubEventAvroMapper.toAvro(hubEventProto);
+        HubEventAvro hubEventAvro = HubEventAvroMapper.mapToAvro(hubEventProto);
 
         producerService.send(hubEventAvro);
         log.info("DeviceAddedEvent was send to topic: {}", hubEventAvro);

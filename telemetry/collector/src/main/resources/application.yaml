@@ -1,9 +1,9 @@
 grpc:
   server:
-    port: 9090
+    port: 59091
 
 
 logging:
   level:
     org.springframework.boot: DEBUG
-    net.devh: TRACE
+    ru.yandex.practicum: DEBUG

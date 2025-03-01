@@ -26,8 +26,7 @@ public class LightSensorEventHandler implements SensorEventHandler {
                 .mapToAvro(
                         sensorEventProto,
                         SensorEventProto.PayloadCase.LIGHT_SENSOR_EVENT);
-
-        producerService.send(sensorEventAvro);
         log.info("Response - light sensor event in avro: {}", sensorEventAvro);
+        producerService.send(sensorEventAvro);
     }
 }

@@ -1,121 +1,124 @@
 package ru.yandex.practicum.hub.mapper;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
 import ru.yandex.practicum.grpc.telemetry.event.*;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class HubEventAvroMapper {
+    // Схема union для поля payload
+    private static final Schema PAYLOAD_UNION_SCHEMA = HubEventAvro.getClassSchema().getField("payload").schema();
 
-    public static HubEventAvro toAvro(HubEventProto event) {
-        // Создаем билдер для основного события хаба
-        Instant timestamp = Instant.ofEpochSecond(event.getTimestamp().getSeconds());
+    // Позиции типов в union (порядок как в avro схеме)
+    private static final int DEVICE_ADDED_POS = 0;
+    private static final int DEVICE_REMOVED_POS = 1;
+    private static final int SCENARIO_ADDED_POS = 2;
+    private static final int SCENARIO_REMOVED_POS = 3;
 
-        HubEventAvro.Builder avroBuilder = HubEventAvro.newBuilder()
-                .setHubId(event.getHubId())
-                .setTimestamp(timestamp);
+    public static HubEventAvro mapToAvro(HubEventProto protoEvent) {
+        HubEventAvro.Builder builder = HubEventAvro.newBuilder()
+                .setHubId(protoEvent.getHubId())
+                .setTimestamp(convertTimestamp(protoEvent.getTimestamp()));
 
-        // Обрабатываем конкретный тип события
-        switch (event.getPayloadCase()) {
-            case HubEventProto.PayloadCase.DEVICE_ADDED -> avroBuilder
-                    .setPayload(createDeviceAddedPayload(event.getDeviceAdded()));
-            case HubEventProto.PayloadCase.DEVICE_REMOVED -> avroBuilder
-                    .setPayload(createDeviceRemovedPayload(event.getDeviceRemoved()));
-            case HubEventProto.PayloadCase.SCENARIO_ADDED -> avroBuilder
-                    .setPayload(createScenarioAddedPayload(event.getScenarioAdded()));
-            case HubEventProto.PayloadCase.SCENARIO_REMOVED -> avroBuilder
-                    .setPayload(createScenarioRemovedPayload(event.getScenarioRemoved()));
-            default -> throw new IllegalArgumentException("Unsupported hub event type: " + event.getPayloadCase());
+        switch (protoEvent.getPayloadCase()) {
+            case DEVICE_ADDED:
+                builder.setPayload(convertDeviceAdded(protoEvent.getDeviceAdded()));
+                break;
+            case DEVICE_REMOVED:
+                builder.setPayload(convertDeviceRemoved(protoEvent.getDeviceRemoved()));
+                break;
+            case SCENARIO_ADDED:
+                builder.setPayload(convertScenarioAdded(protoEvent.getScenarioAdded()));
+                break;
+            case SCENARIO_REMOVED:
+                builder.setPayload(convertScenarioRemoved(protoEvent.getScenarioRemoved()));
+                break;
+            case PAYLOAD_NOT_SET:
+                log.error("Hub event payload is missing");
+                throw new IllegalArgumentException("Hub event payload is required");
         }
-
-        return avroBuilder.build();
-    }
-
-    private static DeviceAddedEventAvro createDeviceAddedPayload(DeviceAddedEventProto event) {
-        return DeviceAddedEventAvro.newBuilder()
-                .setId(event.getId())
-                .setType(mapDeviceType(event.getType()))
-                .build();
-    }
-
-    private static DeviceRemovedEventAvro createDeviceRemovedPayload(DeviceRemovedEventProto event) {
-        return DeviceRemovedEventAvro.newBuilder()
-                .setId(event.getId())
-                .build();
-    }
-
-    private static ScenarioAddedEventAvro createScenarioAddedPayload(ScenarioAddedEventProto event) {
-        return ScenarioAddedEventAvro.newBuilder()
-                .setName(event.getName())
-                .setConditions(mapConditions(event.getConditionList()))
-                .setActions(mapActions(event.getActionList()))
-                .build();
-    }
-
-    private static ScenarioRemovedEventAvro createScenarioRemovedPayload(ScenarioRemovedEventProto event) {
-        return ScenarioRemovedEventAvro.newBuilder()
-                .setName(event.getName())
-                .build();
-    }
-
-    private static List<ScenarioConditionAvro> mapConditions(List<ScenarioConditionProto> conditions) {
-        return conditions.stream()
-                .map(HubEventAvroMapper::mapCondition)
-                .toList();
-    }
-
-    private static ScenarioConditionAvro mapCondition(ScenarioConditionProto condition) {
-        ScenarioConditionAvro.Builder builder = ScenarioConditionAvro.newBuilder()
-                .setSensorId(condition.getSensorId())
-                .setType(mapConditionType(condition.getType()))
-                .setOperation(mapOperationType(condition.getOperation()));
-
-        populateConditionValue(condition, builder);
 
         return builder.build();
     }
 
-    private static void populateConditionValue(ScenarioConditionProto condition, ScenarioConditionAvro.Builder builder) {
-        if (condition.getType() == ConditionTypeProto.SWITCH) {
-            // Для SWITCH используем boolean значение
-            Boolean boolValue = condition.getBoolValue();
-            builder.setValue(boolValue);
-        } else {
-            // Для остальных типов используем integer значение
-            Integer intValue = condition.getIntValue();
-            builder.setValue(intValue);
-        }
+    private static GenericRecord convertDeviceAdded(DeviceAddedEventProto proto) {
+        GenericRecord record = new GenericData.Record(PAYLOAD_UNION_SCHEMA.getTypes().get(DEVICE_ADDED_POS));
+        record.put("id", proto.getId());
+        record.put("type", DeviceTypeAvro.values()[proto.getType().ordinal()]);
+        return record;
     }
 
-    private static List<DeviceActionAvro> mapActions(List<DeviceActionProto> actions) {
-        return actions.stream()
-                .map(HubEventAvroMapper::mapAction)
-                .toList();
+    private static GenericRecord convertDeviceRemoved(DeviceRemovedEventProto proto) {
+        GenericRecord record = new GenericData.Record(PAYLOAD_UNION_SCHEMA.getTypes().get(DEVICE_REMOVED_POS));
+        record.put("id", proto.getId());
+        return record;
     }
 
-    private static DeviceActionAvro mapAction(DeviceActionProto action) {
-        return DeviceActionAvro.newBuilder()
-                .setSensorId(action.getSensorId())
-                .setType(mapActionType(action.getType()))
-                .setValue(action.getValue())
-                .build();
+    private static GenericRecord convertScenarioAdded(ScenarioAddedEventProto proto) {
+        GenericRecord record = new GenericData.Record(PAYLOAD_UNION_SCHEMA.getTypes().get(SCENARIO_ADDED_POS));
+
+        record.put("name", proto.getName());
+        record.put("conditions", convertConditions(proto.getConditionList()));
+        record.put("actions", convertActions(proto.getActionList()));
+
+        return record;
     }
 
-    // Маппинг enum-типов
-    private static DeviceTypeAvro mapDeviceType(DeviceTypeProto type) {
-        return DeviceTypeAvro.valueOf(type.name());
+    private static GenericRecord convertScenarioRemoved(ScenarioRemovedEventProto proto) {
+        GenericRecord record = new GenericData.Record(PAYLOAD_UNION_SCHEMA.getTypes().get(SCENARIO_REMOVED_POS));
+        record.put("name", proto.getName());
+        return record;
     }
 
-    private static ConditionTypeAvro mapConditionType(ConditionTypeProto type) {
-        return ConditionTypeAvro.valueOf(type.name());
+    private static List<GenericRecord> convertConditions(List<ScenarioConditionProto> conditions) {
+        return conditions.stream().map(condition -> {
+            GenericRecord record = new GenericData.Record(ScenarioConditionAvro.getClassSchema());
+
+            record.put("sensor_id", condition.getSensorId());
+            record.put("type", ConditionTypeAvro.values()[condition.getType().ordinal()]);
+            record.put("operation", ConditionOperationAvro.values()[condition.getOperation().ordinal()]);
+
+            // Обработка union значения
+            if (condition.hasBoolValue()) {
+                record.put("value", condition.getBoolValue());
+            } else if (condition.hasIntValue()) {
+                record.put("value", condition.getIntValue());
+            } else {
+                record.put("value", null);
+            }
+
+            return record;
+        }).collect(Collectors.toList());
     }
 
-    private static ConditionOperationAvro mapOperationType(ConditionOperationProto type) {
-        return ConditionOperationAvro.valueOf(type.name());
+    private static List<GenericRecord> convertActions(List<DeviceActionProto> actions) {
+        return actions.stream().map(action -> {
+            GenericRecord record = new GenericData.Record(DeviceActionAvro.getClassSchema());
+
+            record.put("sensor_id", action.getSensorId());
+            record.put("type", ActionTypeAvro.values()[action.getType().ordinal()]);
+
+            if (action.hasValue()) {
+                record.put("value", action.getValue());
+            } else {
+                record.put("value", null);
+            }
+
+            return record;
+        }).collect(Collectors.toList());
     }
 
-    private static ActionTypeAvro mapActionType(ActionTypeProto type) {
-        return ActionTypeAvro.valueOf(type.name());
+    private static Instant convertTimestamp(com.google.protobuf.Timestamp timestamp) {
+        return Instant.ofEpochSecond(
+                timestamp.getSeconds(),
+                timestamp.getNanos()
+        );
     }
 }

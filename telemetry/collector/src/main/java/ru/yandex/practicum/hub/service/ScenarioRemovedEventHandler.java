@@ -22,7 +22,7 @@ public class ScenarioRemovedEventHandler implements HubEventHandler {
     @Override
     public void handle(HubEventProto hubEventProto) {
         log.info("Request - ScenarioAddedEvent in proto: {}", hubEventProto);
-        HubEventAvro hubEventAvro = HubEventAvroMapper.toAvro(hubEventProto);
+        HubEventAvro hubEventAvro = HubEventAvroMapper.mapToAvro(hubEventProto);
 
         producerService.send(hubEventAvro);
         log.info("ScenarioAddedEvent was send to topic: {}", hubEventAvro);
