@@ -1,0 +1,9 @@
+grpc:
+  server:
+    port: 59091
+
+
+logging:
+  level:
+    org.springframework.boot: DEBUG
+    net.devh: TRACE

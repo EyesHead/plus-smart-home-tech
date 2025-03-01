@@ -4,6 +4,7 @@ import com.google.protobuf.Empty;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
@@ -39,17 +40,23 @@ public class SensorEventControllerGrpc {
 
         try {
             if (!sensorEventHandlers.containsKey(sensorType)) {
-                String errorMessage = String.format("Event handler for type doesn't exist. %s", sensorType);
-                log.error(errorMessage);
-                throw new IllegalArgumentException(errorMessage);
+                throw new IllegalArgumentException("Can't find handler for event type: " + sensorType);
             }
 
+            // Обработка события sensor
             sensorEventHandlers.get(sensorType).handle(request);
 
+            // Отправка ответа ПОСЛЕ успешной обработки
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver.onError(new StatusRuntimeException(Status.fromThrowable(e)));
+            log.error("Executing gRPC method collectSensorEvent error. {}", e.getMessage());
         }
+    }
+
+    @PostConstruct
+    public void init() {
+        log.info("Registered HubEvent handlers: {}", sensorEventHandlers.keySet());
     }
 }

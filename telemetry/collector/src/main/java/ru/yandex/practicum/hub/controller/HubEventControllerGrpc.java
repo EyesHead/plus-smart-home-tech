@@ -4,6 +4,7 @@ import com.google.protobuf.Empty;
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -28,22 +29,18 @@ public class HubEventControllerGrpc {
                 ));
     }
 
-    /**
-     * Метод для обработки событий от хаба.
-     * Вызывается при получении регистрации нового датчика от gRPC-клиента.
-     *
-     * @param request           Событие от датчика
-     * @param responseObserver  Ответ для клиента - Empty
-     */
     public void collectHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
+        HubEventProto.PayloadCase hubEventType = request.getPayloadCase();
+
         try {
-            if (hubEventHandlers.containsKey(request.getPayloadCase())) {
-                // если обработчик найден, передаём событие ему на обработку
-                hubEventHandlers.get(request.getPayloadCase()).handle(request);
-            } else {
-                throw new IllegalArgumentException("Can't find handler for event with type: " + request.getPayloadCase());
+            if (!hubEventHandlers.containsKey(hubEventType)) {
+                throw new IllegalArgumentException("Can't find handler for event type: " + request.getPayloadCase());
             }
 
+            // Обработка события hub
+            hubEventHandlers.get(hubEventType).handle(request);
+
+            // Отправка ответа ПОСЛЕ успешной обработки
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
         } catch (Exception e) {
@@ -52,6 +49,12 @@ public class HubEventControllerGrpc {
                             .withDescription(e.getLocalizedMessage())
                             .withCause(e)
             ));
+            log.error("Executing GRPC method collectHubEvent error. {}", e.getMessage());
         }
+    }
+
+    @PostConstruct
+    public void init() {
+        log.info("Registered HubEvent handlers: {}", hubEventHandlers.keySet());
     }
 }
