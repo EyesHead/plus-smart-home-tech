@@ -36,6 +36,7 @@ public class SensorEventControllerGrpc {
      * @param responseObserver  Ответ для клиента - Empty
      */
     public void collectSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
+        log.info("gRPC collector request for method collectHubEvent: {}", request);
         SensorEventProto.PayloadCase sensorType = request.getPayloadCase();
 
         try {

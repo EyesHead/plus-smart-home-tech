@@ -30,6 +30,7 @@ public class HubEventControllerGrpc {
     }
 
     public void collectHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
+        log.info("gRPC collector request for method collectHubEvent: {}", request);
         HubEventProto.PayloadCase hubEventType = request.getPayloadCase();
 
         try {
