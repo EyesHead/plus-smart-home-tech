@@ -1,12 +1,9 @@
-package ru.yandex.practicum.sensor.kafka;
+package ru.yandex.practicum.kafka;
 
-import jakarta.annotation.PreDestroy;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.config.KafkaProducerSensorEventConfig;
-import ru.yandex.practicum.config.TopicNames;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 @Component
@@ -14,7 +11,7 @@ public class SensorEventProducerService {
     private static final Producer<Void, SensorEventAvro> producer;
 
     static {
-        producer = new KafkaProducer<>(KafkaProducerSensorEventConfig.init());
+        producer = new KafkaProducer<>(KafkaProducerConfig.init());
     }
 
     public void send(SensorEventAvro event) {
@@ -23,10 +20,5 @@ public class SensorEventProducerService {
 
         producer.send(record);
         producer.flush();
-    }
-
-    @PreDestroy
-    public void close() {
-        producer.close();
     }
 }

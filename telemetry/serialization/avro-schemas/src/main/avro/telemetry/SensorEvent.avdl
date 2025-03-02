@@ -30,6 +30,12 @@ protocol SensorEventProtocol {
 		string id;
 		string hubId;
 		timestamp_ms timestamp;
-		union { ClimateSensor, LightSensor, MotionSensor, SwitchSensor, TemperatureSensor } payload;
+		union {
+			ClimateSensor,
+			LightSensor,
+			MotionSensor,
+			SwitchSensor,
+			TemperatureSensor
+		} payload;
 	}
 }

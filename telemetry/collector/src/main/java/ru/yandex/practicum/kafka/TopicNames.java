@@ -1,4 +1,4 @@
-package ru.yandex.practicum.config;
+package ru.yandex.practicum.kafka;
 
 public class TopicNames {
     public static final String TELEMETRY_SENSORS_TOPIC = "telemetry.sensors.v1";
