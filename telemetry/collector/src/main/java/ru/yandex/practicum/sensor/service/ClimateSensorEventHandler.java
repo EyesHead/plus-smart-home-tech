@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.sensor.kafka.SensorEventProducerService;
-import ru.yandex.practicum.sensor.mapper.SensorEventAvroMapper;
+import ru.yandex.practicum.sensor.mapper.SensorEventMapper;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,10 +22,7 @@ public class ClimateSensorEventHandler implements SensorEventHandler {
     @Override
     public void handle(SensorEventProto sensorEventProto) {
         log.info("Request - ClimateSensorEvent in proto: {}", sensorEventProto);
-        SensorEventAvro sensorEventAvro = SensorEventAvroMapper
-                .mapToAvro(
-                        sensorEventProto,
-                        SensorEventProto.PayloadCase.CLIMATE_SENSOR_EVENT);
+        SensorEventAvro sensorEventAvro = SensorEventMapper.map(sensorEventProto);
 
         producerService.send(sensorEventAvro);
         log.info("Response - climate sensor event in avro: {}", sensorEventAvro);
