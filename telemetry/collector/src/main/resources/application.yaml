@@ -1,0 +1,8 @@
+grpc:
+  server:
+    port: 59091
+
+logging:
+  level:
+    org.springframework.boot: DEBUG
+    ru.yandex.practicum: DEBUG
