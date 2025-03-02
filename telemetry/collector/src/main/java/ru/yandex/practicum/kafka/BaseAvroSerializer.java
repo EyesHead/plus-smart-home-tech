@@ -13,19 +13,17 @@ import java.io.IOException;
 
 public class BaseAvroSerializer implements Serializer<SpecificRecordBase> {
     private final EncoderFactory encoderFactory = EncoderFactory.get();
-    private BinaryEncoder encoder;
 
     public byte[] serialize(String topic, SpecificRecordBase data) {
+        if (data == null) return null;
+        final DatumWriter<SpecificRecordBase> WRITER = new SpecificDatumWriter<>(data.getSchema());
+
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            byte[] result = null;
-            encoder = encoderFactory.binaryEncoder(out, encoder);
-            if (data != null) {
-                DatumWriter<SpecificRecordBase> writer = new SpecificDatumWriter<>(data.getSchema());
-                writer.write(data, encoder);
-                encoder.flush();
-                result = out.toByteArray();
-            }
-            return result;
+            BinaryEncoder encoder = encoderFactory.binaryEncoder(out, null); // Всегда создаём новый encoder
+            WRITER.write(data, encoder);
+            encoder.flush();  // Гарантируем запись всех данных
+            return out.toByteArray();
+
         } catch (IOException ex) {
             throw new SerializationException("Ошибка сериализации данных для топика [" + topic + "]", ex);
         }
