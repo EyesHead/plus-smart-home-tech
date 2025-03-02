@@ -1,19 +1,7 @@
 package ru.yandex.practicum.kafka;
 
+import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
-<<<<<<<< HEAD:telemetry/collector/src/main/java/ru/yandex/practicum/hub/kafka/HubEventAvroSerializer.java
-import ru.yandex.practicum.config.BaseAvroSerializer;
-import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
-
-public class HubEventAvroSerializer extends BaseAvroSerializer<HubEventAvro> {
-    public HubEventAvroSerializer(DatumWriter<HubEventAvro> writer) {
-        super(writer);
-    }
-
-    @Override
-    public byte[] serialize(String topic, HubEventAvro data) {
-        return super.serialize(topic, data);
-========
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecordBase;
@@ -41,6 +29,5 @@ public class BaseAvroSerializer implements Serializer<SpecificRecordBase> {
         } catch (IOException ex) {
             throw new SerializationException("Ошибка сериализации данных для топика [" + topic + "]", ex);
         }
->>>>>>>> ae7f751 (fixed: base avro serializer initialized):telemetry/collector/src/main/java/ru/yandex/practicum/kafka/BaseAvroSerializer.java
     }
 }

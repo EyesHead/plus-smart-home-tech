@@ -28,6 +28,3 @@ public class DeviceRemovedEventHandler implements HubEventHandler {
         log.info("DeviceRemovedEvent was send to topic: {}", hubEventAvro);
     }
 }
-
-
-
