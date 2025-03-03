@@ -17,8 +17,8 @@ protocol SensorEventProtocol {
 	}
 
 	record LightSensor {
-		int? link_quality;
-		int? luminosity;
+		int link_quality;
+		int luminosity;
 	}
 
 	record TemperatureSensor {

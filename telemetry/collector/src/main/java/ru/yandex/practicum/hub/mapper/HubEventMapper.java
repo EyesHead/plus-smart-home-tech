@@ -54,7 +54,7 @@ public class HubEventMapper {
         return DeviceActionAvro.newBuilder()
                 .setSensorId(proto.getSensorId())
                 .setType(ActionTypeAvro.valueOf(proto.getType().name()))
-                .setValue(proto.hasValue() ? proto.getValue() : null)
+                .setValue(proto.getValue())
                 .build();
     }
 }
