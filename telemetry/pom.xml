@@ -15,17 +15,6 @@
     <modules>
         <module>serialization</module>
         <module>collector</module>
+        <module>aggregator</module>
     </modules>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-stub</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-protobuf</artifactId>
-        </dependency>
-    </dependencies>
 </project>
