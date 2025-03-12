@@ -6,3 +6,11 @@ logging:
   level:
     org.springframework.boot: DEBUG
     ru.yandex.practicum: DEBUG
+collector:
+  kafka-producer:
+    properties:
+      "bootstrap.servers" : "localhost:9092"
+      "key.serializer" : "org.apache.kafka.common.serialization.VoidSerializer"
+      "value.serializer" : "ru.yandex.practicum.kafka.serializer.BaseAvroSerializer"
+    hub-topic : "telemetry.hubs.v1"
+    sensor-topic : "telemetry.sensors.v1"
