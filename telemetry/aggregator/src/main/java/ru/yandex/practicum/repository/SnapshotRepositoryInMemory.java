@@ -3,9 +3,9 @@ package ru.yandex.practicum.repository;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * MVP реализация репозитория для хранения снэпшотов сенсоров каждого хаба.
@@ -18,7 +18,7 @@ public class SnapshotRepositoryInMemory implements SnapshotRepository {
      * @implNote Key - Hub id снэпшота, Value - снэпшот с информацией о сенсорах
      */
 
-    private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
+    private final Map<String, SensorsSnapshotAvro> snapshots = new ConcurrentHashMap<>();
 
     @Override
     public Optional<SensorsSnapshotAvro> getById(String hubId) {
@@ -32,7 +32,7 @@ public class SnapshotRepositoryInMemory implements SnapshotRepository {
 
     @Override
     public SensorsSnapshotAvro update(SensorsSnapshotAvro snapshot) {
-        snapshots.remove(snapshot.getHubId());
-        return snapshots.put(snapshot.getHubId(), snapshot);
+        snapshots.put(snapshot.getHubId(), snapshot); // put() атомарно заменяет значение
+        return snapshot;
     }
 }
