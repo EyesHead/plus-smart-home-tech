@@ -21,7 +21,6 @@ public class SensorEventControllerGrpc {
     private final Map<SensorEventProto.PayloadCase, SensorEventHandler> sensorEventHandlers;
 
     public SensorEventControllerGrpc(Set<SensorEventHandler> sensorEventHandlers) {
-        log.debug("Injected SensorEventHandlers: {}", sensorEventHandlers);
         this.sensorEventHandlers = sensorEventHandlers.stream()
                 .collect(Collectors.toMap(
                         SensorEventHandler::getMessageType,
@@ -59,6 +58,6 @@ public class SensorEventControllerGrpc {
 
     @PostConstruct
     public void init() {
-        log.info("Registered HubEvent handlers: {}", sensorEventHandlers.keySet());
+        log.info("Registered SensorEvent handlers: {}", sensorEventHandlers.keySet());
     }
 }

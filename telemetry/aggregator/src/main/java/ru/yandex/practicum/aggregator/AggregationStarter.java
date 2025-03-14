@@ -80,9 +80,10 @@ public class AggregationStarter {
 
     private void processRecords(ConsumerRecords<String, SensorEventAvro> records) {
         for (ConsumerRecord<String, SensorEventAvro> record : records) {
+            SensorEventAvro recordData = record.value();
             try {
-                log.info("Payload type: {}", record.value().getPayload().getClass());
-                Optional<SensorsSnapshotAvro> snapshot = service.updateState(record.value());
+                log.info("Payload type: {}", recordData.getPayload().getClass());
+                Optional<SensorsSnapshotAvro> snapshot = service.updateState(recordData);
                 snapshot.ifPresent(this::sendSnapshot);
             } catch (UnresolvedUnionException e) {
                 log.error("Некорректный тип payload: {}", record.value().getPayload());

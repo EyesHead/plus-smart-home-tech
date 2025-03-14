@@ -23,7 +23,6 @@ public class HubEventControllerGrpc {
 
     @Autowired
     public HubEventControllerGrpc(Set<HubEventHandler> hubEventHandlers) {
-        log.debug("Injected HubEventHandler classes: {}", hubEventHandlers);
         this.hubEventHandlers = hubEventHandlers.stream()
                 .collect(Collectors.toMap(
                         HubEventHandler::getMessageType,

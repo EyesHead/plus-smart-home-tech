@@ -5,18 +5,14 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
-import java.time.Instant;
-import java.util.Map;
+import java.util.HashMap;
 
 public class SnapshotMapper {
-    public static SensorsSnapshotAvro mapToSnapshot(SensorEventAvro event) {
+    public static SensorsSnapshotAvro mapToNewSnapshot(SensorEventAvro event) {
         return SensorsSnapshotAvro.newBuilder()
                 .setHubId(event.getHubId())
-                .setTimestamp(Instant.now())
-                .setSensorsState(Map.of(
-                        event.getId(),
-                        mapToState(event)
-                ))
+                .setTimestamp(event.getTimestamp())
+                .setSensorsState(new HashMap<>())
                 .build();
     }
 

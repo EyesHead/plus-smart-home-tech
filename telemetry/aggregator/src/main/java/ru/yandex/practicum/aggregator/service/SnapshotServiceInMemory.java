@@ -21,40 +21,39 @@ public class SnapshotServiceInMemory implements SnapshotService {
 
     @Override
     public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
-        log.info("Обработка события: {}", event);
-        // Получаем или создаем снапшот для hubId
-        SensorsSnapshotAvro oldSnapshot = snapshotRepository.getById(event.getHubId())
-                .orElseGet(() -> {
-                    SensorsSnapshotAvro snapshot = SnapshotMapper.mapToSnapshot(event);
-                    snapshotRepository.save(snapshot);
-                    return snapshot;
-                });
+        SensorsSnapshotAvro snapshot = snapshotRepository.getById(event.getHubId())
+                .orElseGet(() -> snapshotRepository.save(SnapshotMapper.mapToNewSnapshot(event)));
 
-        // Получаем текущее состояние датчика (если есть)
-        SensorStateAvro oldState = oldSnapshot.getSensorsState().get(event.getId());
+        SensorStateAvro oldState = snapshot.getSensorsState().get(event.getId());
 
-        // Проверяем, нужно ли обновлять состояние
-        if (oldState != null) {
-            boolean isEventOutdated = event.getTimestamp().isBefore(oldState.getTimestamp());
-            boolean isDataSame = SensorDataComparator.isEqual(oldState.getData(), event.getPayload());
-
-            if (isEventOutdated || isDataSame) {
-                log.debug("Событие не требует обновления: {}", event.getId());
-                return Optional.empty(); // Не обновляем
-            }
+        // Если состояние отсутствует, добавляем его
+        if (oldState == null) {
+            Map<String, SensorStateAvro> newStates = new HashMap<>(snapshot.getSensorsState());
+            newStates.put(event.getId(), SnapshotMapper.mapToState(event));
+            snapshot = SensorsSnapshotAvro.newBuilder(snapshot)
+                    .setSensorsState(newStates)
+                    .setTimestamp(event.getTimestamp())
+                    .build();
+            snapshot = snapshotRepository.save(snapshot);
+            return Optional.of(snapshot);
         }
 
-        // Обновляем состояние (даже если oldState == null)
-        Map<String, SensorStateAvro> newStates = new HashMap<>(oldSnapshot.getSensorsState());
-        newStates.put(event.getId(), SnapshotMapper.mapToState(event));
+        // Проверка актуальности данных
+        boolean isEventOutdated = event.getTimestamp().isBefore(oldState.getTimestamp());
+        boolean isDataSame = SensorDataComparator.isEqual(oldState.getData(), event.getPayload());
 
-        SensorsSnapshotAvro newSnapshot = SensorsSnapshotAvro.newBuilder(oldSnapshot)
+        if (isEventOutdated || isDataSame) {
+            return Optional.empty();
+        }
+
+        // Обновление существующего состояния
+        Map<String, SensorStateAvro> newStates = new HashMap<>(snapshot.getSensorsState());
+        newStates.put(event.getId(), SnapshotMapper.mapToState(event));
+        SensorsSnapshotAvro newSnapshot = SensorsSnapshotAvro.newBuilder(snapshot)
                 .setSensorsState(newStates)
                 .setTimestamp(event.getTimestamp())
                 .build();
-
         newSnapshot = snapshotRepository.save(newSnapshot);
-        log.info("Снапшот обновлён: {}", newSnapshot);
         return Optional.of(newSnapshot);
     }
 }

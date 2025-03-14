@@ -8,7 +8,7 @@ import java.util.Objects;
 @Slf4j
 public class SensorDataComparator {
     public static boolean isEqual(Object data1, Object data2) {
-        log.debug("Сравниваем: {} и {}", data1.getClass(), data2.getClass());
+        log.debug("Сравниваем два {}", data1.getClass());
 
         if (data1 == data2) return true;
 
