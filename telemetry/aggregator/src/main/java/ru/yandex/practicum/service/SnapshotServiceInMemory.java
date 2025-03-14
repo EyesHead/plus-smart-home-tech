@@ -7,6 +7,7 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import ru.yandex.practicum.mapper.SnapshotMapper;
 import ru.yandex.practicum.repository.SnapshotRepository;
+import ru.yandex.practicum.utils.SensorDataComparator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,16 +21,16 @@ public class SnapshotServiceInMemory implements SnapshotService {
     @Override
     public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
         // Получаем или создаем снапшот для hubId
-        SensorsSnapshotAvro snapshot = snapshotRepository.getById(event.getHubId())
+        SensorsSnapshotAvro oldSnapshot = snapshotRepository.getById(event.getHubId())
                 .orElseGet(() -> snapshotRepository.save(SnapshotMapper.mapToSnapshot(event)));
 
         // Получаем текущее состояние датчика (если есть)
-        SensorStateAvro oldState = snapshot.getSensorsState().get(event.getId());
+        SensorStateAvro oldState = oldSnapshot.getSensorsState().get(event.getId());
 
         // Проверяем, нужно ли обновлять состояние
         if (oldState != null) {
             boolean isEventOutdated = event.getTimestamp().isBefore(oldState.getTimestamp());
-            boolean isDataSame = oldState.getData().equals(event.getPayload());
+            boolean isDataSame = SensorDataComparator.isEqual(oldState.getData(), event.getPayload());
 
             if (isEventOutdated || isDataSame) {
                 return Optional.empty(); // Не обновляем
@@ -37,11 +38,13 @@ public class SnapshotServiceInMemory implements SnapshotService {
         }
 
         // Обновляем состояние (даже если oldState == null)
-        Map<String, SensorStateAvro> newStates = new HashMap<>(snapshot.getSensorsState());
+        Map<String, SensorStateAvro> newStates = new HashMap<>(oldSnapshot.getSensorsState());
         newStates.put(event.getId(), SnapshotMapper.mapToState(event));
-        snapshot.setSensorsState(newStates);
-        snapshot.setTimestamp(event.getTimestamp());
+        oldSnapshot.setSensorsState(newStates);
+        oldSnapshot.setTimestamp(event.getTimestamp());
 
-        return Optional.of(snapshotRepository.update(snapshot));
+        SensorsSnapshotAvro newSnapshot = snapshotRepository.update(oldSnapshot);
+
+        return Optional.of(newSnapshot);
     }
 }

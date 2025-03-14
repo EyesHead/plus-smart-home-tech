@@ -1,4 +1,4 @@
-package ru.yandex.practicum.kafka;
+package ru.yandex.practicum;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,10 +48,18 @@ public class AggregationStarter {
                     Optional<SensorsSnapshotAvro> aggregatedSnapshot = service.updateState(record.value());
 
                     // реализация отправки агрегированных данных из сервиса в kafka topic
-                    aggregatedSnapshot.ifPresent((snapshot) -> producer.send(new ProducerRecord<>(
-                            producerConfig.getTopic(),
-                            snapshot))
-                    );
+                    aggregatedSnapshot.ifPresent(snapshot -> {
+                        ProducerRecord<String, SensorsSnapshotAvro> snapshotRecord = new ProducerRecord<>(
+                                producerConfig.getTopic(),
+                                snapshot.getHubId(),
+                                snapshot
+                        );
+                        producer.send(snapshotRecord, (metadata,  exception) -> {
+                            if (exception != null) {
+                                log.error("Ошибка отправки снапшота: {}", exception.getMessage());
+                            }
+                        });
+                    });
                 }
             }
         } catch (WakeupException ignored) {
