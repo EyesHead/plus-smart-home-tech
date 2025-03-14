@@ -53,16 +53,11 @@
             <artifactId>grpc-spring-boot-starter</artifactId>
         </dependency>
 
-        <!--> logger <!-->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-        </dependency>
-
         <!--> boilerplate <!-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
