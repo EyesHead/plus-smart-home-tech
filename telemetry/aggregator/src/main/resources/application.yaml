@@ -4,7 +4,7 @@ aggregator:
     properties:
       bootstrap.servers: "localhost:9092"
       key.serializer: "org.apache.kafka.common.serialization.VoidSerializer"
-      value.serializer: "ru.yandex.practicum.kafka.serializer.BaseAvroSerializer"
+      value.serializer: "ru.yandex.practicum.collector.kafka.serializer.BaseAvroSerializer"
       enable.auto.commit: "true"
 
   kafka-consumer:
@@ -12,11 +12,14 @@ aggregator:
     properties:
       max.poll.interval.ms: 300000 # 5 минут
       session.timeout.ms: 10000
-      heartbeat.interval.ms: 3000
       auto.offset.reset: "earliest"
       auto.commit.interval.ms: "1000"
       bootstrap.servers: "localhost:9092"
       group.id: "aggregator-group"
       key.deserializer: "org.apache.kafka.common.serialization.VoidDeserializer"
-      value.deserializer: "ru.yandex.practicum.kafka.deserializer.SensorEventDeserializer"
+      value.deserializer: "ru.yandex.practicum.aggregator.kafka.deserializer.SensorEventDeserializer"
       enable.auto.commit: "true"
+
+logging:
+  level:
+    ru.yandex.practicum: DEBUG

@@ -4,13 +4,13 @@ grpc:
 
 logging:
   level:
-    org.springframework.boot: DEBUG
     ru.yandex.practicum: DEBUG
+
 collector:
   kafka-producer:
-    hubTopic: "telemetry.hubs.v1"
-    sensorTopic: "telemetry.sensors.v1"
+    hub-topic: "telemetry.hub-events.v1"
+    sensor-topic: "telemetry.sensors.v1"
     properties:
-      "bootstrap.servers" : "localhost:9092"
-      "key.serializer" : "org.apache.kafka.common.serialization.VoidSerializer"
-      "value.serializer" : "ru.yandex.practicum.kafka.serializer.BaseAvroSerializer"
+      bootstrap.servers: "localhost:9092"
+      key.serializer: "org.apache.kafka.common.serialization.VoidSerializer"
+      value.serializer: "ru.yandex.practicum.collector.kafka.serializer.BaseAvroSerializer"
