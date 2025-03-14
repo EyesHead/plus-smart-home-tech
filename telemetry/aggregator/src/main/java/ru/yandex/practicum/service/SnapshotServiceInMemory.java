@@ -1,6 +1,7 @@
 package ru.yandex.practicum.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
@@ -15,11 +16,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SnapshotServiceInMemory implements SnapshotService {
     private final SnapshotRepository snapshotRepository;
 
     @Override
     public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
+        log.info("Обработка события: {}", event);
         // Получаем или создаем снапшот для hubId
         SensorsSnapshotAvro oldSnapshot = snapshotRepository.getById(event.getHubId())
                 .orElseGet(() -> {
@@ -37,6 +40,7 @@ public class SnapshotServiceInMemory implements SnapshotService {
             boolean isDataSame = SensorDataComparator.isEqual(oldState.getData(), event.getPayload());
 
             if (isEventOutdated || isDataSame) {
+                log.debug("Событие не требует обновления: {}", event.getId());
                 return Optional.empty(); // Не обновляем
             }
         }
@@ -51,7 +55,7 @@ public class SnapshotServiceInMemory implements SnapshotService {
                 .build();
 
         newSnapshot = snapshotRepository.save(newSnapshot);
-
+        log.info("Снапшот обновлён: {}", newSnapshot);
         return Optional.of(newSnapshot);
     }
 }
