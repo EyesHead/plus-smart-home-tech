@@ -50,7 +50,8 @@ public class AggregationStarter {
                     // реализация отправки агрегированных данных из сервиса в kafka topic
                     aggregatedSnapshot.ifPresent((snapshot) -> producer.send(new ProducerRecord<>(
                             producerConfig.getTopic(),
-                            snapshot)));
+                            snapshot))
+                    );
                 }
             }
         } catch (WakeupException ignored) {

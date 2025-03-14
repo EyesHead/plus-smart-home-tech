@@ -1,22 +1,17 @@
 package ru.yandex.practicum.kafka.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+@Getter
 @ConfigurationProperties("aggregator.kafka-producer")
+@AllArgsConstructor
 public class AggregatorKafkaProducerConfig {
-    private final Map<String, String> properties;
-    @Getter
     private final String topic;
-
-    public AggregatorKafkaProducerConfig(Map<String, String> properties, String topic) {
-        this.properties = properties != null ? properties : new HashMap<>();
-        this.topic = topic;
-    }
+    private final Map<String, String> properties;
 
     public Properties getProperties() {
         Properties props = new Properties();

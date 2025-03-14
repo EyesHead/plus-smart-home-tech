@@ -6,7 +6,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import ru.yandex.practicum.kafka.config.CollectorKafkaProducerConfig;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ CollectorKafkaProducerConfig.class})
+@EnableConfigurationProperties({
+        CollectorKafkaProducerConfig.class
+})
 public class CollectorApplication {
     public static void main(String[] args) {
         SpringApplication.run(CollectorApplication.class, args);

@@ -1,14 +1,14 @@
 aggregator:
   kafka-producer:
-    properties:
-      "bootstrap.servers": "localhost:9092"
-      "key.serializer": "org.apache.kafka.common.serialization.VoidSerializer"
-      "value.serializer": "ru.yandex.practicum.kafka.serializer.BaseAvroSerializer"
     topic: "telemetry.snapshots.v1"
-
-  kafka-consumer:
     properties:
-      "bootstrap.servers": "localhost:9092"
-      "key.deserializer": "org.apache.kafka.common.serialization.StringDeserializer"
-      "value.deserializer": "ru.yandex.practicum.kafka.deserializer.SensorEventDeserializer"
+      bootstrap.servers: "localhost:9092"
+      key.serializer: "org.apache.kafka.common.serialization.VoidSerializer"
+      value.serializer: "ru.yandex.practicum.kafka.serializer.BaseAvroSerializer"
+      enable.auto.commit: "true"
+  kafka-consumer:
     topic: "telemetry.sensors.v1"
+    properties:
+      bootstrap.servers: "localhost:9092"
+      key.deserializer: "org.apache.kafka.common.serialization.VoidDeserializer"
+      value.deserializer: "ru.yandex.practicum.kafka.deserializer.SensorEventDeserializer"

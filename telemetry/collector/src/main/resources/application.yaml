@@ -12,5 +12,5 @@ collector:
       "bootstrap.servers" : "localhost:9092"
       "key.serializer" : "org.apache.kafka.common.serialization.VoidSerializer"
       "value.serializer" : "ru.yandex.practicum.kafka.serializer.BaseAvroSerializer"
-    hub-topic : "telemetry.hubs.v1"
-    sensor-topic : "telemetry.sensors.v1"
+    hubTopic : "telemetry.hubs.v1"
+    sensorTopic : "telemetry.sensors.v1"
