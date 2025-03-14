@@ -29,10 +29,4 @@ public class SnapshotRepositoryInMemory implements SnapshotRepository {
     public SensorsSnapshotAvro save(SensorsSnapshotAvro snapshot) {
         return snapshots.put(snapshot.getHubId(), snapshot);
     }
-
-    @Override
-    public SensorsSnapshotAvro update(SensorsSnapshotAvro snapshot) {
-        snapshots.put(snapshot.getHubId(), snapshot); // put() атомарно заменяет значение
-        return snapshot;
-    }
 }

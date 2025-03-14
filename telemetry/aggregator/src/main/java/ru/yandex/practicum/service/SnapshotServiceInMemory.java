@@ -22,7 +22,11 @@ public class SnapshotServiceInMemory implements SnapshotService {
     public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
         // Получаем или создаем снапшот для hubId
         SensorsSnapshotAvro oldSnapshot = snapshotRepository.getById(event.getHubId())
-                .orElseGet(() -> snapshotRepository.save(SnapshotMapper.mapToSnapshot(event)));
+                .orElseGet(() -> {
+                    SensorsSnapshotAvro snapshot = SnapshotMapper.mapToSnapshot(event);
+                    snapshotRepository.save(snapshot);
+                    return snapshot;
+                });
 
         // Получаем текущее состояние датчика (если есть)
         SensorStateAvro oldState = oldSnapshot.getSensorsState().get(event.getId());
@@ -40,10 +44,13 @@ public class SnapshotServiceInMemory implements SnapshotService {
         // Обновляем состояние (даже если oldState == null)
         Map<String, SensorStateAvro> newStates = new HashMap<>(oldSnapshot.getSensorsState());
         newStates.put(event.getId(), SnapshotMapper.mapToState(event));
-        oldSnapshot.setSensorsState(newStates);
-        oldSnapshot.setTimestamp(event.getTimestamp());
 
-        SensorsSnapshotAvro newSnapshot = snapshotRepository.update(oldSnapshot);
+        SensorsSnapshotAvro newSnapshot = SensorsSnapshotAvro.newBuilder(oldSnapshot)
+                .setSensorsState(newStates)
+                .setTimestamp(event.getTimestamp())
+                .build();
+
+        newSnapshot = snapshotRepository.save(newSnapshot);
 
         return Optional.of(newSnapshot);
     }

@@ -7,5 +7,4 @@ import java.util.Optional;
 public interface SnapshotRepository {
     Optional<SensorsSnapshotAvro> getById(String hubId);
     SensorsSnapshotAvro save(SensorsSnapshotAvro sensorEventAvro);
-    SensorsSnapshotAvro update(SensorsSnapshotAvro sensorEventAvro);
 }

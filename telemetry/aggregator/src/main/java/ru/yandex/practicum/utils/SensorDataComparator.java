@@ -1,6 +1,5 @@
 package ru.yandex.practicum.utils;
 
-import org.apache.avro.Schema;
 import org.apache.avro.specific.SpecificRecord;
 
 import java.util.Objects;
@@ -12,14 +11,13 @@ public class SensorDataComparator {
 
         if (data1 instanceof SpecificRecord record1 && data2 instanceof SpecificRecord record2) {
 
-            // Проверка типа данных
             if (!record1.getSchema().equals(record2.getSchema())) return false;
 
-            // Сравнение каждого поля
-            for (Schema.Field field : record1.getSchema().getFields()) {
-                Object value1 = record1.get(field.pos());
-                Object value2 = record2.get(field.pos());
-                if (!Objects.equals(value1, value2)) return false;
+            // Сравнение всех полей по порядку
+            for (int i = 0; i < record1.getSchema().getFields().size(); i++) {
+                Object val1 = record1.get(i);
+                Object val2 = record2.get(i);
+                if (!Objects.deepEquals(val1, val2)) return false;
             }
             return true;
         }
