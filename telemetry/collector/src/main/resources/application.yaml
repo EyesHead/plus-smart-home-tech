@@ -8,9 +8,9 @@ logging:
     ru.yandex.practicum: DEBUG
 collector:
   kafka-producer:
+    hubTopic: "telemetry.hubs.v1"
+    sensorTopic: "telemetry.sensors.v1"
     properties:
       "bootstrap.servers" : "localhost:9092"
       "key.serializer" : "org.apache.kafka.common.serialization.VoidSerializer"
       "value.serializer" : "ru.yandex.practicum.kafka.serializer.BaseAvroSerializer"
-    hubTopic : "telemetry.hubs.v1"
-    sensorTopic : "telemetry.sensors.v1"

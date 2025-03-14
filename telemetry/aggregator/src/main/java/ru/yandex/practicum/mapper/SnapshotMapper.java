@@ -21,7 +21,7 @@ public class SnapshotMapper {
 
     public static SensorStateAvro mapToState(SensorEventAvro event) {
         return SensorStateAvro.newBuilder()
-                .setData(event)
+                .setData(event.getPayload())
                 .setTimestamp(event.getTimestamp())
                 .build();
     }

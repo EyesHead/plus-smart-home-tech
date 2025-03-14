@@ -1,13 +1,16 @@
 package ru.yandex.practicum.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecord;
 
 import java.util.Objects;
 
+@Slf4j
 public class SensorDataComparator {
     public static boolean isEqual(Object data1, Object data2) {
+        log.debug("Сравниваем: {} и {}", data1.getClass(), data2.getClass());
+
         if (data1 == data2) return true;
-        if (data1 == null || data2 == null) return false;
 
         if (data1 instanceof SpecificRecord record1 && data2 instanceof SpecificRecord record2) {
 
