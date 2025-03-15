@@ -5,7 +5,6 @@ aggregator:
       bootstrap.servers: "localhost:9092"
       key.serializer: "org.apache.kafka.common.serialization.VoidSerializer"
       value.serializer: "ru.yandex.practicum.collector.kafka.serializer.BaseAvroSerializer"
-      enable.auto.commit: "true"
 
   kafka-consumer:
     topic: "telemetry.sensors.v1"
