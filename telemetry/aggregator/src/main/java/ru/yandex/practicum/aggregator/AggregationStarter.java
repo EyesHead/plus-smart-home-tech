@@ -38,44 +38,53 @@ public class AggregationStarter {
     private Consumer<String, SensorEventAvro> consumer;
     private Producer<String, SensorsSnapshotAvro> producer;
 
-    private final static boolean RUNNING = true;
+    private volatile boolean running = true;
 
     @PostConstruct
     public void init() {
-        // Инициализация консьюмера и продюсера
-        this.consumer = new KafkaConsumer<>(consumerConfig.getProperties());
-        this.producer = new KafkaProducer<>(producerConfig.getProperties());
+        try {
+            this.consumer = new KafkaConsumer<>(consumerConfig.getProperties());
+            this.producer = new KafkaProducer<>(producerConfig.getProperties());
+            consumer.subscribe(List.of(consumerConfig.getTopic()));
+            log.info("Подписка на топик {} выполнена", consumerConfig.getTopic());
+        } catch (Exception e) {
+            log.error("Ошибка инициализации Kafka-клиентов: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 
-        // Подписка на топик
-        consumer.subscribe(List.of(consumerConfig.getTopic()));
-        log.info("Подписка на топик {} выполнена", consumerConfig.getTopic());
+    public void stop() {
+        running = false;
+        consumer.wakeup();
     }
 
     @PreDestroy
     public void shutdown() {
-        consumer.wakeup(); // Прерывание блокирующего poll()
+        stop();
     }
 
     public void start() {
-        try {
-            log.info("Запуск обработчика сообщений");
-            while (RUNNING) {
-                try {
-                    ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(1000));
-                    log.debug("Получено {} сообщений", records.count());
+        new Thread(() -> {
+            try {
+                log.info("Запуск обработчика сообщений");
+                while (running) {
+                    try {
+                        ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(1000));
+                        log.debug("Получено {} сообщений", records.count());
 
-                    processRecords(records);
-                    commitOffsets();
+                        processRecords(records);
+                        commitOffsets();
 
-                } catch (WakeupException e) {
-                    if (RUNNING) {
-                        log.warn("WakeupException при работающем сервисе");
+                    } catch (WakeupException e) {
+                        if (running) {
+                            log.warn("WakeupException при работающем сервисе");
+                        }
                     }
                 }
+            } finally {
+                closeResources();
             }
-        } finally {
-            closeResources();
-        }
+        }).start();
     }
 
     private void processRecords(ConsumerRecords<String, SensorEventAvro> records) {
@@ -93,10 +102,7 @@ public class AggregationStarter {
 
     private void sendSnapshot(SensorsSnapshotAvro snapshot) {
         try {
-            ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(
-                    producerConfig.getTopic(),
-                    snapshot
-            );
+            ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(producerConfig.getTopic(), snapshot);
 
             producer.send(record, (metadata, ex) -> {
                 if (ex != null) {
