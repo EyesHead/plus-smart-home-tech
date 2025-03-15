@@ -1,8 +1,5 @@
 package ru.yandex.practicum.aggregator;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.UnresolvedUnionException;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -13,6 +10,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.WakeupException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.aggregator.kafka.config.AggregatorKafkaConsumerConfig;
 import ru.yandex.practicum.aggregator.kafka.config.AggregatorKafkaProducerConfig;
@@ -28,20 +26,48 @@ import java.util.Optional;
  * Класс AggregationStarter, ответственный за запуск агрегации данных.
  */
 @Slf4j
-@RequiredArgsConstructor
 @Component
 public class AggregationStarter {
     private final SnapshotService service;
+
     private final AggregatorKafkaConsumerConfig consumerConfig;
     private final AggregatorKafkaProducerConfig producerConfig;
 
     private Consumer<String, SensorEventAvro> consumer;
     private Producer<String, SensorsSnapshotAvro> producer;
 
-    private volatile boolean running = true;
+    @Autowired
+    public AggregationStarter(SnapshotService service,
+                              AggregatorKafkaConsumerConfig consumerConfig,
+                              AggregatorKafkaProducerConfig producerConfig) {
+        this.service = service;
+        this.consumerConfig = consumerConfig;
+        this.producerConfig = producerConfig;
+    }
 
-    @PostConstruct
-    public void init() {
+    public void start() {
+        try {
+            log.info("Запуск обработчика сообщений");
+            init();
+            while (true) {
+                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
+                if (!records.isEmpty()) {
+                    log.debug("Было получено {} сообщений}", records.count());
+                }
+                processRecords(records);
+                commitOffsets();
+            }
+
+        } catch (WakeupException ignored) {
+            // игнорируем - закрываем консьюмер и продюсер в блоке finally
+        } catch (Exception e) {
+            log.error("Ошибка во время обработки событий от датчиков", e);
+        } finally {
+            closeResources();
+        }
+    }
+
+    private void init() {
         try {
             this.consumer = new KafkaConsumer<>(consumerConfig.getProperties());
             this.producer = new KafkaProducer<>(producerConfig.getProperties());
@@ -53,43 +79,10 @@ public class AggregationStarter {
         }
     }
 
-    public void stop() {
-        running = false;
-        consumer.wakeup();
-    }
-
-    @PreDestroy
-    public void shutdown() {
-        stop();
-    }
-
-    public void start() {
-        new Thread(() -> {
-            try {
-                log.info("Запуск обработчика сообщений");
-                while (running) {
-                    try {
-                        ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(1000));
-                        log.debug("Получено {} сообщений", records.count());
-
-                        processRecords(records);
-                        commitOffsets();
-
-                    } catch (WakeupException e) {
-                        if (running) {
-                            log.warn("WakeupException при работающем сервисе");
-                        }
-                    }
-                }
-            } finally {
-                closeResources();
-            }
-        }).start();
-    }
-
     private void processRecords(ConsumerRecords<String, SensorEventAvro> records) {
         for (ConsumerRecord<String, SensorEventAvro> record : records) {
             SensorEventAvro recordData = record.value();
+            log.info("Начинаю обработку сообщения: {}", recordData);
             try {
                 log.info("Payload type: {}", recordData.getPayload().getClass());
                 Optional<SensorsSnapshotAvro> snapshot = service.updateState(recordData);
@@ -102,6 +95,8 @@ public class AggregationStarter {
 
     private void sendSnapshot(SensorsSnapshotAvro snapshot) {
         try {
+            log.info("Отправка снапшота: hubId={}, timestamp={}", snapshot.getHubId(), snapshot.getTimestamp());
+
             ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(producerConfig.getTopic(), snapshot);
 
             producer.send(record, (metadata, ex) -> {
@@ -127,16 +122,12 @@ public class AggregationStarter {
     }
 
     private void closeResources() {
-        try {
-            log.info("Начало закрытия ресурсов");
-            producer.flush();
-            consumer.commitSync();
-        } catch (Exception e) {
-            log.error("Ошибка при закрытии ресурсов: {}", e.getMessage(), e);
-        } finally {
-            consumer.close();
-            producer.close();
-            log.info("Ресурсы закрыты корректно");
-        }
+        log.info("Начало закрытия ресурсов");
+        producer.flush();
+        consumer.commitSync();
+
+        consumer.close();
+        producer.close();
+        log.info("Ресурсы закрыты корректно");
     }
 }

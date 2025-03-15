@@ -8,7 +8,7 @@ protocol SensorsSnapshotProtocol {
 	record SensorsSnapshotAvro {
 		string hubId;                      // идентификатор хаба
 		timestamp_ms timestamp;            // метка времени снимка
-		map<SensorStateAvro> sensorsState; // набор состояний, где ключ - id устройства
+		map<SensorStateAvro> sensorsState; // набор состояний, key - id сенсора, значение - SensorStateAvro
 	}
 
 	// схема состояния датчика

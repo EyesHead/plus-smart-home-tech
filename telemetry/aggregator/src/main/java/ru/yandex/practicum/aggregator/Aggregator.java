@@ -11,15 +11,16 @@ import ru.yandex.practicum.aggregator.kafka.config.AggregatorKafkaProducerConfig
 /**
  * Главный класс сервиса Aggregator.
  */
-@SpringBootApplication(scanBasePackages = {
-        "ru.yandex.practicum.aggregator",
-        "ru.yandex.practicum.collector.kafka.serializer"
-})
+
 @EnableConfigurationProperties({
         AggregatorKafkaProducerConfig.class,
         AggregatorKafkaConsumerConfig.class
 })
 @Slf4j
+@SpringBootApplication(scanBasePackages = {
+        "ru.yandex.practicum.aggregator",
+        "ru.yandex.practicum.collector.kafka.serializer"
+})
 public class Aggregator {
 
     public static void main(String[] args) {

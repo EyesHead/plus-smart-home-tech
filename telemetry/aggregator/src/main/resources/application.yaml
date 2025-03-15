@@ -2,18 +2,18 @@ aggregator:
   kafka-producer:
     topic: "telemetry.snapshots.v1"
     properties:
-      bootstrap.servers: "localhost:9092"
-      key.serializer: "org.apache.kafka.common.serialization.VoidSerializer"
-      value.serializer: "ru.yandex.practicum.collector.kafka.serializer.BaseAvroSerializer"
+      "bootstrap.servers": "localhost:9092"
+      "key.serializer": "org.apache.kafka.common.serialization.VoidSerializer"
+      "value.serializer": "ru.yandex.practicum.collector.kafka.serializer.BaseAvroSerializer"
 
   kafka-consumer:
     topic: "telemetry.sensors.v1"
     properties:
-      bootstrap.servers: "localhost:9092"
-      group.id: "aggregator-group"
-      key.deserializer: "org.apache.kafka.common.serialization.VoidDeserializer"
-      value.deserializer: "ru.yandex.practicum.aggregator.kafka.deserializer.SensorEventDeserializer"
-      enable.auto.commit: "true"
+      "bootstrap.servers": "localhost:9092"
+      "group.id": "aggregator-group"
+      "key.deserializer": "org.apache.kafka.common.serialization.VoidDeserializer"
+      "value.deserializer": "ru.yandex.practicum.aggregator.kafka.deserializer.SensorEventDeserializer"
+      "enable.auto.commit": "true"
 
 logging:
   level:

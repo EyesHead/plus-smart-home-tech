@@ -13,10 +13,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
-            <scope>provided</scope>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
         </dependency>
 
         <dependency>
@@ -24,9 +22,13 @@
             <artifactId>grpc-protobuf</artifactId>
         </dependency>
 
+        <!-- Until gRPC generator library moves to generated jakarta instead of javax -->
+        <!-- https://github.com/grpc/grpc-java/issues/9179 -->
         <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-stub</artifactId>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>1.3.5</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
