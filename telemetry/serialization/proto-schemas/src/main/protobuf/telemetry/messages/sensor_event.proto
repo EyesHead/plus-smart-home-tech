@@ -38,8 +38,8 @@ message LightSensorEvent {
 
 message ClimateSensorEvent {
   int32 temperature_c = 1;  // уровень температуры по шкале Цельсия
-  int32 humidity = 3;       // влажность
-  int32 co2_level = 5;      // уровень CO2
+  int32 humidity = 2;       // влажность
+  int32 co2_level = 3;      // уровень CO2
 }
 
 message SwitchSensorEvent {
