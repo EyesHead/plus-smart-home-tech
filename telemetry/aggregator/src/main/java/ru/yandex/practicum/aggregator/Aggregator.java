@@ -5,7 +5,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.aggregator.kafka.config.AggregatorKafkaConsumerConfig;
 import ru.yandex.practicum.aggregator.kafka.config.AggregatorKafkaProducerConfig;
 
@@ -18,13 +17,7 @@ import ru.yandex.practicum.aggregator.kafka.config.AggregatorKafkaProducerConfig
         AggregatorKafkaConsumerConfig.class
 })
 @Slf4j
-@SpringBootApplication(scanBasePackages = {
-        "ru.yandex.practicum.aggregator",
-        "ru.yandex.practicum.collector.kafka.serializer"
-})
-@Import({
-        ru.yandex.practicum.collector.kafka.serializer.BaseAvroSerializer.class
-})
+@SpringBootApplication
 public class Aggregator {
 
     public static void main(String[] args) {

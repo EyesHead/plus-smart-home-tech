@@ -4,7 +4,7 @@ aggregator:
     properties:
       "bootstrap.servers": "localhost:9092"
       "key.serializer": "org.apache.kafka.common.serialization.VoidSerializer"
-      "value.serializer": "ru.yandex.practicum.collector.kafka.serializer.BaseAvroSerializer"
+      "value.serializer": "ru.yandex.practicum.aggregator.kafka.serializer.AggregatorKafkaSerializer"
 
   kafka-consumer:
     topic: "telemetry.sensors.v1"
