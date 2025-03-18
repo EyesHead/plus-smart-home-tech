@@ -1,7 +1,6 @@
 package ru.yandex.practicum.aggregator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.UnresolvedUnionException;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -45,28 +44,6 @@ public class AggregationStarter {
         this.producerConfig = producerConfig;
     }
 
-    public void start() {
-        try {
-            log.info("Запуск обработчика сообщений");
-            init();
-            while (true) {
-                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
-                if (!records.isEmpty()) {
-                    log.debug("Было получено {} сообщений}", records.count());
-                }
-                processRecords(records);
-                commitOffsets();
-            }
-
-        } catch (WakeupException ignored) {
-            // игнорируем - закрываем консьюмер и продюсер в блоке finally
-        } catch (Exception e) {
-            log.error("Ошибка во время обработки событий от датчиков", e);
-        } finally {
-            closeResources();
-        }
-    }
-
     private void init() {
         try {
             this.consumer = new KafkaConsumer<>(consumerConfig.getProperties());
@@ -79,17 +56,37 @@ public class AggregationStarter {
         }
     }
 
+    public void start() {
+        try {
+            log.info("Запуск обработчика сообщений");
+            init();
+            while (true) {
+                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
+                if (!records.isEmpty()) {
+                    log.debug("Было получено {} сообщений}", records.count());
+                }
+                processRecords(records);
+            }
+
+        } catch (WakeupException ignored) {
+            // игнорируем - закрываем консьюмер и продюсер в блоке finally
+        } catch (Exception e) {
+            log.error("Ошибка во время обработки событий от датчиков", e);
+        } finally {
+            closeResources();
+        }
+    }
+
     private void processRecords(ConsumerRecords<String, SensorEventAvro> records) {
         for (ConsumerRecord<String, SensorEventAvro> record : records) {
             SensorEventAvro recordData = record.value();
             log.info("Начинаю обработку сообщения: {}", recordData);
-            try {
-                log.info("Payload type: {}", recordData.getPayload().getClass());
-                Optional<SensorsSnapshotAvro> snapshot = service.updateState(recordData);
-                snapshot.ifPresent(this::sendSnapshot);
-            } catch (UnresolvedUnionException e) {
-                log.error("Некорректный тип payload: {}", record.value().getPayload());
-            }
+            Optional<SensorsSnapshotAvro> snapshotOpt = service.updateState(recordData);
+
+            snapshotOpt.ifPresent((snapshot) -> {
+                log.info("Сообщение после обработки: {}", snapshot);
+                sendSnapshot(snapshot);
+            });
         }
     }
 
@@ -99,25 +96,10 @@ public class AggregationStarter {
 
             ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(producerConfig.getTopic(), snapshot);
 
-            producer.send(record, (metadata, ex) -> {
-                if (ex != null) {
-                    log.error("Ошибка отправки снапшота: {}", ex.getMessage(), ex);
-                } else {
-                    log.info("Снапшот отправлен в партицию {}", metadata.partition());
-                }
-            });
+            producer.send(record);
+            producer.flush();
         } catch (Exception e) {
             log.error("Ошибка отправки сообщения: {}", e.getMessage(), e);
-        }
-    }
-
-    private void commitOffsets() {
-        try {
-            if (!consumer.subscription().isEmpty()) {
-                consumer.commitSync();
-            }
-        } catch (Exception e) {
-            log.error("Ошибка коммита оффсетов: {}", e.getMessage(), e);
         }
     }
 
