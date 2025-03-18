@@ -15,7 +15,7 @@ public class SensorEventMapper {
                 .build();
     }
 
-    private static Object mapPayload(SensorEventProto proto) {
+    public static Object mapPayload(SensorEventProto proto) {
         return switch (proto.getPayloadCase()) {
             case MOTION_SENSOR_EVENT -> MotionSensorAvro.newBuilder()
                     .setLinkQuality(proto.getMotionSensorEvent().getLinkQuality())

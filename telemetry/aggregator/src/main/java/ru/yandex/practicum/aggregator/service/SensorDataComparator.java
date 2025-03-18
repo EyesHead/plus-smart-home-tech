@@ -12,7 +12,7 @@ public class SensorDataComparator {
 
         if (data1 == data2) return true;
 
-        if (data1 instanceof SpecificRecord record1 && data2 instanceof SpecificRecord record2) {
+        if (data1 instanceof SpecificRecord record1 &&data2 instanceof SpecificRecord record2) {
 
             if (!record1.getSchema().equals(record2.getSchema())) return false;
 

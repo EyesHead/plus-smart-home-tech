@@ -66,6 +66,7 @@ public class AggregationStarter {
                     log.debug("Было получено {} сообщений}", records.count());
                 }
                 processRecords(records);
+                log.info("------------------------------------------------");
             }
 
         } catch (WakeupException ignored) {
@@ -83,18 +84,16 @@ public class AggregationStarter {
             log.info("Начинаю обработку сообщения: {}", recordData);
             Optional<SensorsSnapshotAvro> snapshotOpt = service.updateState(recordData);
 
-            snapshotOpt.ifPresent((snapshot) -> {
-                log.info("Сообщение после обработки: {}", snapshot);
-                sendSnapshot(snapshot);
-            });
+            snapshotOpt.ifPresent(this::sendSnapshot);
         }
     }
 
     private void sendSnapshot(SensorsSnapshotAvro snapshot) {
         try {
-            log.info("Отправка снапшота: hubId={}, timestamp={}", snapshot.getHubId(), snapshot.getTimestamp());
+            String topicName = producerConfig.getTopic();
+            log.info("Отправка снапшота после обработки: {} в топик {}", snapshot, topicName);
 
-            ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(producerConfig.getTopic(), snapshot);
+            ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(topicName, snapshot);
 
             producer.send(record);
             producer.flush();
@@ -104,12 +103,12 @@ public class AggregationStarter {
     }
 
     private void closeResources() {
-        log.info("Начало закрытия ресурсов");
+        log.debug("Начало закрытия ресурсов");
         producer.flush();
         consumer.commitSync();
 
         consumer.close();
         producer.close();
-        log.info("Ресурсы закрыты корректно");
+        log.info("Ресурсы закрыты");
     }
 }

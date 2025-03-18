@@ -31,13 +31,15 @@ public class SnapshotServiceInMemory implements SnapshotService {
         SensorStateAvro oldState = snapshot.getSensorsState().get(event.getId());
         // Если событие добавлялось ранее в snapshot
         if (oldState != null) {
-            log.debug("У снапшота есть данные об этом сенсоре. Проверка актуальности данных сенсора с id = {}", event.getId());
+            log.debug("У снапшота есть данные об этом сенсоре: {} \n Новое полученное состояние сенсора: {}", oldState, event.getPayload());
             boolean isEventOutdated = oldState.getTimestamp().isAfter(event.getTimestamp());
             boolean isDataSame = SensorDataComparator.isEqual(oldState.getData(), event.getPayload());
-
             if (isEventOutdated || isDataSame) {
                 log.info("Данные неактуальны. Возврат Optional.empty()");
                 return Optional.empty();
+            } else {
+                // Удаляем старые показания сенсора, т.к. далее мы их обновим
+                snapshot.getSensorsState().remove(event.getId());
             }
         }
         log.info("Были получены новые данные для snapshot с hubId = {}. Обновляем показания сенсора с id = {}",
