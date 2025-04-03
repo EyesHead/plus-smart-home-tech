@@ -32,8 +32,8 @@ public class AggregationStarter {
     private final AggregatorKafkaConsumerConfig consumerConfig;
     private final AggregatorKafkaProducerConfig producerConfig;
 
-    private Consumer<String, SensorEventAvro> consumer;
-    private Producer<String, SensorsSnapshotAvro> producer;
+    private Consumer<Void, SensorEventAvro> consumer;
+    private Producer<Void, SensorsSnapshotAvro> producer;
 
     @Autowired
     public AggregationStarter(SnapshotService service,
@@ -61,7 +61,7 @@ public class AggregationStarter {
             log.info("Запуск обработчика сообщений");
             init();
             while (true) {
-                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
+                ConsumerRecords<Void, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
                 if (!records.isEmpty()) {
                     log.debug("Было получено {} сообщений}", records.count());
                 }
@@ -78,8 +78,8 @@ public class AggregationStarter {
         }
     }
 
-    private void processRecords(ConsumerRecords<String, SensorEventAvro> records) {
-        for (ConsumerRecord<String, SensorEventAvro> record : records) {
+    private void processRecords(ConsumerRecords<Void, SensorEventAvro> records) {
+        for (ConsumerRecord<Void, SensorEventAvro> record : records) {
             SensorEventAvro recordData = record.value();
             log.info("Начинаю обработку сообщения: {}", recordData);
             Optional<SensorsSnapshotAvro> snapshotOpt = service.updateState(recordData);
@@ -93,7 +93,7 @@ public class AggregationStarter {
             String topicName = producerConfig.getTopic();
             log.info("Отправка снапшота после обработки: {} в топик {}", snapshot, topicName);
 
-            ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(topicName, snapshot);
+            ProducerRecord<Void, SensorsSnapshotAvro> record = new ProducerRecord<>(topicName, snapshot);
 
             producer.send(record);
             producer.flush();
