@@ -17,6 +17,10 @@ services:
       KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       CLUSTER_ID: 'K0EA9p0yEe6MkAAAAkKsEg'
 
+      SPRING_DATASOURCE_URL: jdbc:postgresql://smart-home-database:5432/smartHomeDb
+      SPRING_DATASOURCE_USERNAME: smartHomeDb
+      SPRING_DATASOURCE_PASSWORD: smartHomeDb
+
   kafka-init-topics:
     image: confluentinc/confluent-local:7.4.3
     container_name: kafka-init-topics
@@ -33,3 +37,18 @@ services:
                              --partitions 1 --replication-factor 1 --if-not-exists \
                              --bootstrap-server kafka:29092'"
     init: true
+
+  smart-home-database:
+    image: postgres:16.1
+    container_name: smart-home-db
+    ports:
+      - "6542:5432"
+    environment:
+      - POSTGRES_PASSWORD=smartHomeDb
+      - POSTGRES_USER=smartHomeDb
+      - POSTGRES_DB=smartHomeDb
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
