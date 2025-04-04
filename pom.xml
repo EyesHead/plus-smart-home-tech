@@ -19,7 +19,6 @@
         <module>telemetry</module>
         <module>infra</module>
         <module>commerce</module>
-        <module>telemetry/analyzer</module>
     </modules>
 
     <properties>
