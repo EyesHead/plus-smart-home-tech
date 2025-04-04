@@ -1,4 +1,4 @@
-package ru.yandex.practicum.aggregator.kafka.deserializer;
+package ru.yandex.practicum.serialization;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
@@ -7,7 +7,6 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.common.serialization.Deserializer;
-import ru.yandex.practicum.aggregator.exception.DeserializationException;
 
 public class BaseAvroDeserializer<T extends SpecificRecordBase> implements Deserializer<T> {
     private final DecoderFactory decoderFactory;
@@ -30,7 +29,7 @@ public class BaseAvroDeserializer<T extends SpecificRecordBase> implements Deser
             BinaryDecoder decoder = decoderFactory.binaryDecoder(data, null);
             return this.reader.read(null, decoder);
         } catch (Exception e) {
-            throw new DeserializationException("Deserialization error from topic [" + topic + "]", e);
+            throw new InternalError("Deserialization error from topic [" + topic + "]", e);
         }
     }
 }
