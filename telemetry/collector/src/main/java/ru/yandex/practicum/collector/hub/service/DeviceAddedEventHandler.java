@@ -3,9 +3,12 @@ package ru.yandex.practicum.collector.hub.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.collector.hub.mapper.HubEventMapper;
+import ru.yandex.practicum.collector.hub.mapper.HubEventBaseFieldMapper;
 import ru.yandex.practicum.collector.kafka.HubEventProducerService;
+import ru.yandex.practicum.grpc.telemetry.event.DeviceAddedEventProto;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
+import ru.yandex.practicum.kafka.telemetry.event.DeviceAddedEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.DeviceTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 
 @Component
@@ -21,10 +24,22 @@ public class DeviceAddedEventHandler implements HubEventHandler {
 
     @Override
     public void handle(HubEventProto hubEventProto) {
-        log.info("Request - DeviceAddedEvent in proto: {}", hubEventProto);
-        HubEventAvro hubEventAvro = HubEventMapper.map(hubEventProto);
+        log.info("Начинаем обработку DeviceAddedEventProto");
+
+        DeviceAddedEventProto deviceAddedEventProto = hubEventProto.getDeviceAdded();
+
+        HubEventAvro hubEventAvro = HubEventBaseFieldMapper.map(hubEventProto)
+                .setPayload(mapPayload(deviceAddedEventProto))
+                .build();
 
         producerService.send(hubEventAvro);
-        log.info("DeviceAddedEvent was send to topic: {}", hubEventAvro);
+        log.info("Данные были переведены в HubEventAvro и отправлены в topic: {}", hubEventAvro);
+    }
+
+    private DeviceAddedEventAvro mapPayload(DeviceAddedEventProto hubEventProto) {
+        return DeviceAddedEventAvro.newBuilder()
+                .setId(hubEventProto.getId())
+                .setType(DeviceTypeAvro.valueOf(hubEventProto.getType().name()))
+                .build();
     }
 }

@@ -9,6 +9,5 @@ option java_package = "ru.yandex.practicum.grpc.telemetry.hubrouter";
 option java_outer_classname = "HubRouterControllerProto";
 
 service HubRouterController {
-  rpc handleDeviceAction (message.event.DeviceActionRequestProto)
-      returns (google.protobuf.Empty);
+  rpc handleDeviceAction (message.event.DeviceActionRequest) returns (google.protobuf.Empty);
 }

@@ -3,9 +3,11 @@ package ru.yandex.practicum.collector.sensor.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.avro.mapper.TimestampMapper;
 import ru.yandex.practicum.collector.kafka.SensorEventProducerService;
-import ru.yandex.practicum.collector.sensor.mapper.SensorEventMapper;
+import ru.yandex.practicum.grpc.telemetry.event.MotionSensorProto;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
+import ru.yandex.practicum.kafka.telemetry.event.MotionSensorAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 @Slf4j
@@ -21,11 +23,25 @@ public class MotionSensorEventHandler implements SensorEventHandler {
 
     @Override
     public void handle(SensorEventProto sensorEventProto) {
-        log.info("Request - MotionSensorEvent in proto: {}", sensorEventProto);
-        SensorEventAvro sensorEventAvro = SensorEventMapper.map(sensorEventProto);
+        log.info("Обработчик сенсора LightSensorEvent получил proto схему данных с сенсора");
+        MotionSensorAvro motionSensorAvro = mapPayload(sensorEventProto.getMotionSensorEvent());
+
+        SensorEventAvro sensorEventAvro = SensorEventAvro.newBuilder()
+                .setHubId(sensorEventProto.getHubId())
+                .setTimestamp(TimestampMapper.mapToInstant(sensorEventProto.getTimestamp()))
+                .setId(sensorEventProto.getId())
+                .setPayload(motionSensorAvro)
+                .build();
 
         producerService.send(sensorEventAvro);
-        log.info("Response - motion sensor event in avro: {}", sensorEventAvro);
+        log.info("Данные LightSensorEvent были переведены в формат Avro и успешно отправлены в топик сенсоров: {}",  sensorEventAvro);
+    }
 
+    private MotionSensorAvro mapPayload(MotionSensorProto motionSensorProto) {
+        return MotionSensorAvro.newBuilder()
+                .setMotion(motionSensorProto.getMotion())
+                .setVoltage(motionSensorProto.getVoltage())
+                .setLinkQuality(motionSensorProto.getLinkQuality())
+                .build();
     }
 }

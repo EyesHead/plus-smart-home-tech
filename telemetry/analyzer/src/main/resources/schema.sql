@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS sensors (
     id VARCHAR PRIMARY KEY,
     hub_id VARCHAR NOT NULL,
-    type VARCHAR NOT NULL
+    type SMALLINT NOT NULL
 );
 
 -- создаём таблицу scenarios
@@ -16,15 +16,15 @@ CREATE TABLE IF NOT EXISTS scenarios (
 -- создаём таблицу conditions
 CREATE TABLE IF NOT EXISTS conditions (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    type VARCHAR NOT NULL,
-    operation VARCHAR NOT NULL,
+    type SMALLINT NOT NULL,
+    operation SMALLINT NOT NULL,
     value INTEGER
 );
 
 -- создаём таблицу actions
 CREATE TABLE IF NOT EXISTS actions (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    type VARCHAR,
+    type SMALLINT,
     value INTEGER
 );
 

@@ -27,13 +27,17 @@ grpc:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6542/smartHomeDb
-    username: smartHomeDb
-    password: smartHomeDb
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
   sql:
     init:
       mode: always
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
 
 logging:
   level:

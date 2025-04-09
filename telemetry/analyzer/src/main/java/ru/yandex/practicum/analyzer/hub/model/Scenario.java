@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Entity
-@Table(schema = "scenarios")
+@Table(name = "scenarios")
 @NoArgsConstructor
 @Setter
 @Getter
@@ -27,7 +27,7 @@ public class Scenario {
     @Column(name = "hub_id", nullable = false)
     String hubId;
 
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn
     @MapKeyColumn(
             table = "scenario_conditions",
@@ -41,7 +41,7 @@ public class Scenario {
     Map<String, Condition> conditions = new HashMap<>();
 
 
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn
     @MapKeyColumn(
             table = "scenario_actions",

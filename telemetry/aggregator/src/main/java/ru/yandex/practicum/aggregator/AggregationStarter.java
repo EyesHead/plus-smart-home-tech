@@ -28,7 +28,6 @@ import java.util.Optional;
 @Component
 public class AggregationStarter {
     private final SnapshotService service;
-
     private final AggregatorKafkaConsumerConfig consumerConfig;
     private final AggregatorKafkaProducerConfig producerConfig;
 
@@ -64,9 +63,9 @@ public class AggregationStarter {
                 ConsumerRecords<Void, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
                 if (!records.isEmpty()) {
                     log.debug("Было получено {} сообщений}", records.count());
+                    processRecords(records);
+                    log.info("------------------------------------------------");
                 }
-                processRecords(records);
-                log.info("------------------------------------------------");
             }
 
         } catch (WakeupException ignored) {

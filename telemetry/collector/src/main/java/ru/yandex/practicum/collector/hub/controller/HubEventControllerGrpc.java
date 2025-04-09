@@ -31,12 +31,12 @@ public class HubEventControllerGrpc {
     }
 
     public void collectHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
-        log.info("gRPC collector request for method collectHubEvent: {}", request);
+        log.info("Получен запрос от gRPC метода collectHubEvent с proto схемой запроса: {}", request);
         HubEventProto.PayloadCase hubEventType = request.getPayloadCase();
 
         try {
             if (!hubEventHandlers.containsKey(hubEventType)) {
-                throw new IllegalArgumentException("Can't find handler for event type: " + request.getPayloadCase());
+                throw new IllegalArgumentException("Обработчика для указанного типа запроса не существует: " + request.getPayloadCase());
             }
 
             // Обработка события hub
@@ -51,12 +51,12 @@ public class HubEventControllerGrpc {
                             .withDescription(e.getLocalizedMessage())
                             .withCause(e)
             ));
-            log.error("Executing GRPC method collectHubEvent error. {}", e.getMessage());
+            log.error("Выполнение GRPC метода collectHubEvent завершилось с ошибкой. {}", e.getMessage());
         }
     }
 
     @PostConstruct
     public void init() {
-        log.info("Registered HubEvent handlers: {}", hubEventHandlers.keySet());
+        log.info("Зарегистрированы обработчики событий HubEvent: {}", hubEventHandlers.keySet());
     }
 }
