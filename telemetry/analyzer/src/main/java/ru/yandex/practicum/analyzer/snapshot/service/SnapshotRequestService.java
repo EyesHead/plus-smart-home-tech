@@ -9,9 +9,10 @@ import ru.yandex.practicum.analyzer.hub.model.Condition;
 import ru.yandex.practicum.analyzer.hub.model.Scenario;
 import ru.yandex.practicum.analyzer.hub.repository.ScenarioRepository;
 import ru.yandex.practicum.analyzer.hub.repository.SensorRepository;
+import ru.yandex.practicum.analyzer.snapshot.service.handler.ConditionHandlerFactory;
 import ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
-import ru.yandex.practicum.grpc.telemetry.event.DeviceActionRequestProto;
+import ru.yandex.practicum.grpc.telemetry.event.DeviceActionRequest;
 import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
@@ -30,7 +31,7 @@ public class SnapshotRequestService {
     private final SensorRepository sensorRepository;
     private final ConditionHandlerFactory conditionHandlerFactory;
 
-    public List<DeviceActionRequestProto> prepareActionRequests(SensorsSnapshotAvro sensorsSnapshot) {
+    public List<DeviceActionRequest> prepareDeviceActions(SensorsSnapshotAvro sensorsSnapshot) {
 
         return scenarioRepository.findByHubId(sensorsSnapshot.getHubId()).stream()
                 .filter(scenario -> isScenarioTriggered(scenario, sensorsSnapshot))
@@ -62,7 +63,7 @@ public class SnapshotRequestService {
                 .orElse(false);
     }
 
-    private Stream<DeviceActionRequestProto> mapScenarioToActions(Scenario scenario, SensorsSnapshotAvro sensorsSnapshot) {
+    private Stream<DeviceActionRequest> mapScenarioToActions(Scenario scenario, SensorsSnapshotAvro sensorsSnapshot) {
         return scenario.getActions().entrySet().stream()
                 .map(entry -> buildActionRequestProto(
                         sensorsSnapshot.getHubId(),
@@ -73,9 +74,9 @@ public class SnapshotRequestService {
                 ));
     }
 
-    private DeviceActionRequestProto buildActionRequestProto(String hubId, String scenarioName,
-                                                             String sensorId, Action action, Instant timestamp) {
-        return DeviceActionRequestProto.newBuilder()
+    private DeviceActionRequest buildActionRequestProto(String hubId, String scenarioName,
+                                                        String sensorId, Action action, Instant timestamp) {
+        return DeviceActionRequest.newBuilder()
                 .setHubId(hubId)
                 .setScenarioName(scenarioName)
                 .setAction(DeviceActionProto.newBuilder()

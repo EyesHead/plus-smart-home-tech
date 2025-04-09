@@ -46,15 +46,6 @@ public class HubEventProcessor implements Runnable {
         }
     }
 
-    private void processRecords(ConsumerRecords<Void, HubEventAvro> records) {
-        for (ConsumerRecord<Void, HubEventAvro> record : records) {
-            HubEventAvro hubEventAvro = record.value();
-            log.info("Начинаю обработку события хаба: {}", hubEventAvro);
-
-            service.handleRequest(hubEventAvro);
-        }
-    }
-
     private void init() {
         try {
             this.consumer = new KafkaConsumer<>(consumerConfig.getProperties());
@@ -63,6 +54,15 @@ public class HubEventProcessor implements Runnable {
         } catch (Exception e) {
             log.error("Ошибка инициализации Kafka-клиентов: {}", e.getMessage(), e);
             throw e;
+        }
+    }
+
+    private void processRecords(ConsumerRecords<Void, HubEventAvro> records) {
+        for (ConsumerRecord<Void, HubEventAvro> record : records) {
+            HubEventAvro hubEventAvro = record.value();
+            log.info("Начинаю обработку события хаба: {}", hubEventAvro);
+
+            service.handleRequestEvent(hubEventAvro);
         }
     }
 

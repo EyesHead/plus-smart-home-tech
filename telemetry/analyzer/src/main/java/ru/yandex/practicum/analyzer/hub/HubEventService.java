@@ -2,8 +2,8 @@ package ru.yandex.practicum.analyzer.hub;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.analyzer.hub.handler.HubEventHandler;
-import ru.yandex.practicum.analyzer.hub.handler.HubEventHandlerType;
+import ru.yandex.practicum.analyzer.hub.handler.HubEventServiceHandler;
+import ru.yandex.practicum.analyzer.hub.handler.HubEventServiceType;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 import java.util.Map;
@@ -13,30 +13,30 @@ import java.util.stream.Collectors;
 
 @Service
 public class HubEventService {
-    private final Map<HubEventHandlerType, HubEventHandler> hubEventHandlers;
+    private final Map<HubEventServiceType, HubEventServiceHandler> hubEventHandlers;
 
     @Autowired
-    public HubEventService(Set<HubEventHandler> hubEventHandlers) {
-        this.hubEventHandlers = hubEventHandlers.stream()
+    public HubEventService(Set<HubEventServiceHandler> hubEventServices) {
+        this.hubEventHandlers = hubEventServices.stream()
                 .collect(Collectors.toMap(
-                        HubEventHandler::getHandlerType,
+                        HubEventServiceHandler::getHandlerType,
                         Function.identity()
                 ));
     }
 
-    public void handleRequest(HubEventAvro request) {
-        HubEventHandlerType handlerType = getHubEventPayloadType(request);
+    public void handleRequestEvent(HubEventAvro requestEvent) {
+        HubEventServiceType handlerType = getHubEventPayloadType(requestEvent);
 
         // Обработка события hub
-        hubEventHandlers.get(handlerType).handle(request);
+        hubEventHandlers.get(handlerType).handleEvent(requestEvent);
     }
 
-    private HubEventHandlerType getHubEventPayloadType(HubEventAvro hubEventAvro) {
+    private HubEventServiceType getHubEventPayloadType(HubEventAvro hubEventAvro) {
         return switch (hubEventAvro.getPayload()) {
-            case DeviceAddedEventAvro ignored -> HubEventHandlerType.DEVICE_ADDED_EVENT;
-            case DeviceRemovedEventAvro ignored -> HubEventHandlerType.DEVICE_REMOVED_EVENT;
-            case ScenarioAddedEventAvro ignored -> HubEventHandlerType.SCENARIO_ADDED_EVENT;
-            case ScenarioRemovedEventAvro ignored -> HubEventHandlerType.SCENARIO_REMOVED_EVENT;
+            case DeviceAddedEventAvro ignored -> HubEventServiceType.DEVICE_ADDED_EVENT;
+            case DeviceRemovedEventAvro ignored -> HubEventServiceType.DEVICE_REMOVED_EVENT;
+            case ScenarioAddedEventAvro ignored -> HubEventServiceType.SCENARIO_ADDED_EVENT;
+            case ScenarioRemovedEventAvro ignored -> HubEventServiceType.SCENARIO_REMOVED_EVENT;
             default -> throw new IllegalStateException("Не существующий тип у поля payload объекта HubEventAvro: " + hubEventAvro.getPayload());
         };
     }

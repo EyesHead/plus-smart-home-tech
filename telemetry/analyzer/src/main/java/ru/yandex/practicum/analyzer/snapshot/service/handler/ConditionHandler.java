@@ -1,4 +1,4 @@
-package ru.yandex.practicum.analyzer.snapshot.service;
+package ru.yandex.practicum.analyzer.snapshot.service.handler;
 
 import ru.yandex.practicum.analyzer.hub.model.Condition;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceTypeAvro;

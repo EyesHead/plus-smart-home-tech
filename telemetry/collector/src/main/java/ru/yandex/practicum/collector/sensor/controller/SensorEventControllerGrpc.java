@@ -36,12 +36,12 @@ public class SensorEventControllerGrpc {
      * @param responseObserver  Ответ для клиента - Empty
      */
     public void collectSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
-        log.info("gRPC collector request for method collectHubEvent: {}", request);
+        log.info("Пришли данные сенсора в формате Proto: {}", request);
         SensorEventProto.PayloadCase sensorType = request.getPayloadCase();
 
         try {
             if (!sensorEventHandlers.containsKey(sensorType)) {
-                throw new IllegalArgumentException("Can't find handler for event type: " + sensorType);
+                throw new IllegalArgumentException("Обработчик для сенсора с указанным типом payloadCase не существует: " + sensorType);
             }
 
             // Обработка события sensor
@@ -58,6 +58,6 @@ public class SensorEventControllerGrpc {
 
     @PostConstruct
     public void init() {
-        log.info("Registered SensorEvent handlers: {}", sensorEventHandlers.keySet());
+        log.info("Зарегистрированы обработчики для следующих сенсоров: {}", sensorEventHandlers.keySet());
     }
 }

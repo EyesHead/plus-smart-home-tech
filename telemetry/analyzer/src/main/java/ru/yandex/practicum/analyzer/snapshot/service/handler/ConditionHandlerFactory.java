@@ -1,4 +1,4 @@
-package ru.yandex.practicum.analyzer.snapshot.service;
+package ru.yandex.practicum.analyzer.snapshot.service.handler;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

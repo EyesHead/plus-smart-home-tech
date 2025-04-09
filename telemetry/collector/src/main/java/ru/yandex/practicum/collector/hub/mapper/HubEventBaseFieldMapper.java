@@ -1,19 +1,16 @@
 package ru.yandex.practicum.collector.hub.mapper;
 
+import ru.yandex.practicum.avro.mapper.TimestampMapper;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.grpc.telemetry.event.ScenarioConditionProto;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
-import java.time.Instant;
-
-public class HubEventMapper {
-    public static HubEventAvro map(HubEventProto proto) {
+public class HubEventBaseFieldMapper {
+    public static HubEventAvro.Builder map(HubEventProto proto) {
         return HubEventAvro.newBuilder()
                 .setHubId(proto.getHubId())
-                .setTimestamp(Instant.ofEpochSecond(proto.getTimestamp().getSeconds(), proto.getTimestamp().getNanos()))
-                .setPayload(mapPayload(proto))
-                .build();
+                .setTimestamp(TimestampMapper.mapToInstant(proto.getTimestamp()));
     }
 
     private static Object mapPayload(HubEventProto proto) {
@@ -28,10 +25,10 @@ public class HubEventMapper {
             case SCENARIO_ADDED -> ScenarioAddedEventAvro.newBuilder()
                     .setName(proto.getScenarioAdded().getName())
                     .setConditions(proto.getScenarioAdded().getConditionList().stream()
-                            .map(HubEventMapper::mapCondition)
+                            .map(HubEventBaseFieldMapper::mapCondition)
                             .toList())
                     .setActions(proto.getScenarioAdded().getActionList().stream()
-                            .map(HubEventMapper::mapAction)
+                            .map(HubEventBaseFieldMapper::mapAction)
                             .toList())
                     .build();
             case SCENARIO_REMOVED -> ScenarioRemovedEventAvro.newBuilder()
@@ -41,12 +38,16 @@ public class HubEventMapper {
         };
     }
 
-    private static ScenarioConditionAvro mapCondition(ScenarioConditionProto proto) {
+    private static ScenarioConditionAvro mapCondition(ScenarioConditionProto condition) {
         return ScenarioConditionAvro.newBuilder()
-                .setSensorId(proto.getSensorId())
-                .setType(ConditionTypeAvro.valueOf(proto.getType().name()))
-                .setOperation(ConditionOperationAvro.valueOf(proto.getOperation().name()))
-                .setValue(proto.hasBoolValue() ? proto.getBoolValue() : proto.hasIntValue() ? proto.getIntValue() : null)
+                .setSensorId(condition.getSensorId())
+                .setType(ConditionTypeAvro.valueOf(condition.getType().name()))
+                .setOperation(ConditionOperationAvro.valueOf(condition.getOperation().name()))
+                .setValue(
+                        condition.hasBoolValue() ? Integer.valueOf(1) :
+                                condition.hasIntValue() ? condition.getIntValue() :
+                                        null
+                )
                 .build();
     }
 
@@ -54,7 +55,7 @@ public class HubEventMapper {
         return DeviceActionAvro.newBuilder()
                 .setSensorId(proto.getSensorId())
                 .setType(ActionTypeAvro.valueOf(proto.getType().name()))
-                .setValue(proto.getValue())
+                .setValue(proto.hasValue() ? proto.getValue() : null)
                 .build();
     }
 }
