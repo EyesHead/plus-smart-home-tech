@@ -28,7 +28,7 @@
         <kafka-clients.version>3.6.1</kafka-clients.version>
         <springdoc-openapi-starter.version>2.6.0</springdoc-openapi-starter.version>
         <grpc-spring-boot-starter.version>3.1.0.RELEASE</grpc-spring-boot-starter.version>
-        <protobuf.version>3.23.4</protobuf.version>
+        <protobuf.version>3.25.1</protobuf.version>
         <grpc.version>1.63.0</grpc.version>
 
         <!--       Plugins       -->
