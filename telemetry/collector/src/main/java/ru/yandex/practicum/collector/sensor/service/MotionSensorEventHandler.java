@@ -28,7 +28,7 @@ public class MotionSensorEventHandler implements SensorEventHandler {
 
         SensorEventAvro sensorEventAvro = SensorEventAvro.newBuilder()
                 .setHubId(sensorEventProto.getHubId())
-                .setTimestamp(TimestampMapper.mapToInstant(sensorEventProto.getTimestamp()))
+                .setTimestamp(TimestampMapper.mapToAvro(sensorEventProto.getTimestamp()))
                 .setId(sensorEventProto.getId())
                 .setPayload(motionSensorAvro)
                 .build();

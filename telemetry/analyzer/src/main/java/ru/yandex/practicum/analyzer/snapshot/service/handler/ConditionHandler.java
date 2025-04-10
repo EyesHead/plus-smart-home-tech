@@ -5,7 +5,7 @@ import ru.yandex.practicum.kafka.telemetry.event.DeviceTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 
 public interface ConditionHandler {
-    boolean handle(Condition condition, SensorStateAvro sensorData);
+    boolean isTriggered(Condition condition, SensorStateAvro sensorData);
 
     DeviceTypeAvro getDeviceType();
 }

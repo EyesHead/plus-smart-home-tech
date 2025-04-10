@@ -1,5 +1,6 @@
 package ru.yandex.practicum.analyzer.snapshot.service.handler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.analyzer.hub.model.Condition;
 import ru.yandex.practicum.kafka.telemetry.event.ConditionOperationAvro;
@@ -8,9 +9,10 @@ import ru.yandex.practicum.kafka.telemetry.event.MotionSensorAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 
 @Component
+@Slf4j
 public class MotionConditionHandler implements ConditionHandler {
     @Override
-    public boolean handle(Condition condition, SensorStateAvro sensorData) {
+    public boolean isTriggered(Condition condition, SensorStateAvro sensorData) {
         MotionSensorAvro currentSensorData = (MotionSensorAvro) sensorData.getData();
 
         boolean sensorValue = switch (condition.getType()) {
@@ -18,10 +20,18 @@ public class MotionConditionHandler implements ConditionHandler {
             default -> throw new IllegalArgumentException("Несуществующий тип показателя для датчика движения: " + condition.getType());
         };
 
-        boolean scenarioConditionValue = condition.getValue().equals(1);
+        boolean conditionValue = switch (condition.getValue()) {
+            case 1 -> true;
+            case 0 -> false;
+            default -> throw new IllegalStateException("Невозможное значение поля value у condition для датчика движения: " + condition.getValue());
+        };
+
+        log.debug("Сравниваем данные датчика движения = {} с данными операции условия = {} по полю MOTION и оператором {}",
+                sensorValue, conditionValue, condition.getOperation());
+
 
         return switch (condition.getOperation()) {
-            case ConditionOperationAvro.EQUALS -> sensorValue == scenarioConditionValue;
+            case ConditionOperationAvro.EQUALS -> sensorValue == conditionValue;
             default -> throw new IllegalArgumentException("Несуществующая операция сравнения для датчика движения: " + condition.getType());
         };
     }

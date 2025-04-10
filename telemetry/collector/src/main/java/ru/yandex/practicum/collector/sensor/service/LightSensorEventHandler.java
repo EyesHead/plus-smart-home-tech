@@ -29,7 +29,7 @@ public class LightSensorEventHandler implements SensorEventHandler {
         SensorEventAvro sensorEventAvro = SensorEventAvro.newBuilder()
                 .setHubId(sensorEventProto.getHubId())
                 .setId(sensorEventProto.getId())
-                .setTimestamp(TimestampMapper.mapToInstant(sensorEventProto.getTimestamp()))
+                .setTimestamp(TimestampMapper.mapToAvro(sensorEventProto.getTimestamp()))
                 .setPayload(lightSensorAvro)
                 .build();
 
