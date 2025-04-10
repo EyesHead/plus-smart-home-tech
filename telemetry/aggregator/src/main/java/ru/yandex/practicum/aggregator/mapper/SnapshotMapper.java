@@ -8,11 +8,11 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import java.util.Map;
 
 public class SnapshotMapper {
-    public static SensorsSnapshotAvro mapToNewSnapshot(SensorEventAvro event) {
+    public static SensorsSnapshotAvro mapToNewSnapshot(SensorEventAvro sensor) {
         return SensorsSnapshotAvro.newBuilder()
-                .setHubId(event.getHubId())
-                .setTimestamp(event.getTimestamp())
-                .setSensorsState(Map.of(event.getId(), mapToState(event)))
+                .setHubId(sensor.getHubId())
+                .setTimestamp(sensor.getTimestamp())
+                .setSensorsState(Map.of(sensor.getId(), mapToState(sensor)))
                 .build();
     }
 

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.analyzer.hub.model.Action;
 import ru.yandex.practicum.analyzer.hub.model.Condition;
 import ru.yandex.practicum.analyzer.hub.model.Scenario;
+import ru.yandex.practicum.analyzer.hub.model.Sensor;
 import ru.yandex.practicum.analyzer.hub.repository.ScenarioRepository;
 import ru.yandex.practicum.analyzer.hub.repository.SensorRepository;
 import ru.yandex.practicum.analyzer.snapshot.service.handler.ConditionHandlerFactory;
@@ -18,8 +19,8 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,52 +33,99 @@ public class SnapshotRequestService {
     private final ConditionHandlerFactory conditionHandlerFactory;
 
     public List<DeviceActionRequest> prepareDeviceActions(SensorsSnapshotAvro sensorsSnapshot) {
-        List<Scenario> scenarios = scenarioRepository.findByHubId(sensorsSnapshot.getHubId());
+        String hubId = sensorsSnapshot.getHubId();
+        log.debug("Processing snapshot for hub: {}", hubId);
+
+        // Получаем все сценарии для хаба
+        List<Scenario> scenarios = scenarioRepository.findByHubId(hubId);
+        if (scenarios.isEmpty()) {
+            log.debug("No scenarios found for hub {}", hubId);
+            return Collections.emptyList();
+        }
+
+        // Собираем все ID сенсоров из условий и действий всех сценариев
+        Set<String> allSensorIds = collectAllSensorIds(scenarios);
+        if (allSensorIds.isEmpty()) {
+            log.debug("No sensors found in scenarios for hub {}", hubId);
+            return Collections.emptyList();
+        }
+
+        // Получаем все сенсоры одним запросом с EntityGraph
+        Map<String, Sensor> sensorsWithIds = sensorRepository
+                .findSensorsByIdsAndHubId(allSensorIds, hubId)
+                .stream()
+                .collect(Collectors.toMap(Sensor::getId, Function.identity()));
+
+        log.debug("Found {} sensors for hub {}", sensorsWithIds.size(), hubId);
+
+        // Обрабатываем сценарии
         return scenarios.stream()
-                .filter(scenario -> isScenarioTriggered(scenario, sensorsSnapshot))
-                .flatMap(scenario -> mapScenarioActionsToResponseActions(scenario, sensorsSnapshot))
+                .filter(scenario -> isScenarioTriggered(scenario, sensorsSnapshot, sensorsWithIds))
+                .peek(scenario -> log.debug("Scenario '{}' triggered", scenario.getName()))
+                .flatMap(scenario -> mapScenarioActionsToResponseActions(scenario, sensorsSnapshot, sensorsWithIds))
                 .collect(Collectors.toList());
     }
 
-    private boolean isScenarioTriggered(Scenario scenario, SensorsSnapshotAvro snapshotAvro) {
-        return scenario.getConditions()
-                .entrySet()
-                .stream()
-                .allMatch(entry -> checkAllConditions(entry, snapshotAvro));
+    private Set<String> collectAllSensorIds(List<Scenario> scenarios) {
+        Set<String> sensorIds = new HashSet<>();
+        scenarios.forEach(scenario -> {
+            sensorIds.addAll(scenario.getConditions().keySet());
+            sensorIds.addAll(scenario.getActions().keySet());
+        });
+        return sensorIds;
     }
 
-    private boolean checkAllConditions(Map.Entry<String, Condition> conditionEntry, SensorsSnapshotAvro snapshotAvro) {
-        final String sensorId = conditionEntry.getKey();
-        final Condition condition = conditionEntry.getValue();
-        final Map<String, SensorStateAvro> sensorStates = snapshotAvro.getSensorsState();
-        final String hubId = snapshotAvro.getHubId();
+    private boolean isScenarioTriggered(Scenario scenario,
+                                        SensorsSnapshotAvro snapshotAvro,
+                                        Map<String, Sensor> sensorsMap) {
+        return scenario.getConditions().entrySet().stream()
+                .allMatch(entry -> checkCondition(entry, snapshotAvro, sensorsMap));
+    }
 
-        return sensorRepository.findByIdAndHubId(sensorId, hubId)
-                .map(sensor -> {
-                    SensorStateAvro state = sensorStates.get(sensorId);
-                    if (state != null) return false;
+    private boolean checkCondition(Map.Entry<String, Condition> conditionEntry,
+                                   SensorsSnapshotAvro snapshotAvro,
+                                   Map<String, Sensor> sensorsMap) {
+        String sensorId = conditionEntry.getKey();
+        Sensor sensor = sensorsMap.get(sensorId);
 
-                    return conditionHandlerFactory.getHandler(sensor.getType())
-                            .isTriggered(condition, state);
+        if (sensor == null) {
+            log.debug("Sensor {} not found for hub {}", sensorId, snapshotAvro.getHubId());
+            return false;
+        }
+
+        SensorStateAvro state = snapshotAvro.getSensorsState().get(sensorId);
+        if (state == null) {
+            log.debug("State not found for sensor {}", sensorId);
+            return false;
+        }
+
+        boolean triggered = conditionHandlerFactory.getHandler(sensor.getType())
+                .isTriggered(conditionEntry.getValue(), state);
+
+        log.debug("Condition check for sensor {}: {}", sensorId, triggered);
+        return triggered;
+    }
+
+    private Stream<DeviceActionRequest> mapScenarioActionsToResponseActions(
+            Scenario scenario,
+            SensorsSnapshotAvro sensorsSnapshot,
+            Map<String, Sensor> sensorsMap) {
+
+        return scenario.getActions().entrySet().stream()
+                .filter(entry -> {
+                    boolean exists = sensorsMap.containsKey(entry.getKey());
+                    if (!exists) {
+                        log.debug("Action sensor {} not found, skipping action", entry.getKey());
+                    }
+                    return exists;
                 })
-                .orElse(false);
-    }
-
-    private Stream<DeviceActionRequest> mapScenarioActionsToResponseActions(Scenario scenario,
-                                                                            SensorsSnapshotAvro sensorsSnapshot) {
-        Map<String, Action> entries = scenario.getActions();
-        return entries.entrySet().stream()
-                .map(entry -> {
-                    String sensorId = entry.getKey();
-                    Action scenarioAction = entry.getValue();
-                    return buildActionRequestProto(
-                            sensorsSnapshot.getHubId(),
-                            sensorsSnapshot.getTimestamp(),
-                            scenario.getName(),
-                            sensorId,
-                            scenarioAction
-                    );
-                });
+                .map(entry -> buildActionRequestProto(
+                        sensorsSnapshot.getHubId(),
+                        sensorsSnapshot.getTimestamp(),
+                        scenario.getName(),
+                        entry.getKey(),
+                        entry.getValue()
+                ));
     }
 
     private DeviceActionRequest buildActionRequestProto(String hubId,
