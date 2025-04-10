@@ -1,6 +1,5 @@
 package ru.yandex.practicum.analyzer.snapshot.service;
 
-import com.google.protobuf.Timestamp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -10,6 +9,7 @@ import ru.yandex.practicum.analyzer.hub.model.Scenario;
 import ru.yandex.practicum.analyzer.hub.repository.ScenarioRepository;
 import ru.yandex.practicum.analyzer.hub.repository.SensorRepository;
 import ru.yandex.practicum.analyzer.snapshot.service.handler.ConditionHandlerFactory;
+import ru.yandex.practicum.avro.mapper.TimestampMapper;
 import ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionRequest;
@@ -32,10 +32,10 @@ public class SnapshotRequestService {
     private final ConditionHandlerFactory conditionHandlerFactory;
 
     public List<DeviceActionRequest> prepareDeviceActions(SensorsSnapshotAvro sensorsSnapshot) {
-
-        return scenarioRepository.findByHubId(sensorsSnapshot.getHubId()).stream()
+        List<Scenario> scenarios = scenarioRepository.findByHubId(sensorsSnapshot.getHubId());
+        return scenarios.stream()
                 .filter(scenario -> isScenarioTriggered(scenario, sensorsSnapshot))
-                .flatMap(scenario -> mapScenarioToActions(scenario, sensorsSnapshot))
+                .flatMap(scenario -> mapScenarioActionsToResponseActions(scenario, sensorsSnapshot))
                 .collect(Collectors.toList());
     }
 
@@ -43,10 +43,10 @@ public class SnapshotRequestService {
         return scenario.getConditions()
                 .entrySet()
                 .stream()
-                .allMatch(entry -> checkCondition(entry, snapshotAvro));
+                .allMatch(entry -> checkAllConditions(entry, snapshotAvro));
     }
 
-    private boolean checkCondition(Map.Entry<String, Condition> conditionEntry, SensorsSnapshotAvro snapshotAvro) {
+    private boolean checkAllConditions(Map.Entry<String, Condition> conditionEntry, SensorsSnapshotAvro snapshotAvro) {
         final String sensorId = conditionEntry.getKey();
         final Condition condition = conditionEntry.getValue();
         final Map<String, SensorStateAvro> sensorStates = snapshotAvro.getSensorsState();
@@ -58,24 +58,33 @@ public class SnapshotRequestService {
                     if (state != null) return false;
 
                     return conditionHandlerFactory.getHandler(sensor.getType())
-                            .handle(condition, state);
+                            .isTriggered(condition, state);
                 })
                 .orElse(false);
     }
 
-    private Stream<DeviceActionRequest> mapScenarioToActions(Scenario scenario, SensorsSnapshotAvro sensorsSnapshot) {
-        return scenario.getActions().entrySet().stream()
-                .map(entry -> buildActionRequestProto(
-                        sensorsSnapshot.getHubId(),
-                        scenario.getName(),
-                        entry.getKey(),
-                        entry.getValue(),
-                        sensorsSnapshot.getTimestamp()
-                ));
+    private Stream<DeviceActionRequest> mapScenarioActionsToResponseActions(Scenario scenario,
+                                                                            SensorsSnapshotAvro sensorsSnapshot) {
+        Map<String, Action> entries = scenario.getActions();
+        return entries.entrySet().stream()
+                .map(entry -> {
+                    String sensorId = entry.getKey();
+                    Action scenarioAction = entry.getValue();
+                    return buildActionRequestProto(
+                            sensorsSnapshot.getHubId(),
+                            sensorsSnapshot.getTimestamp(),
+                            scenario.getName(),
+                            sensorId,
+                            scenarioAction
+                    );
+                });
     }
 
-    private DeviceActionRequest buildActionRequestProto(String hubId, String scenarioName,
-                                                        String sensorId, Action action, Instant timestamp) {
+    private DeviceActionRequest buildActionRequestProto(String hubId,
+                                                        Instant timestamp,
+                                                        String scenarioName,
+                                                        String sensorId,
+                                                        Action action) {
         return DeviceActionRequest.newBuilder()
                 .setHubId(hubId)
                 .setScenarioName(scenarioName)
@@ -83,9 +92,7 @@ public class SnapshotRequestService {
                         .setSensorId(sensorId)
                         .setType(mapActionType(action.getType()))
                         .setValue(action.getValue()))
-                .setTimestamp(Timestamp.newBuilder()
-                        .setSeconds(timestamp.getEpochSecond())
-                        .setNanos(timestamp.getNano()).build())
+                .setTimestamp(TimestampMapper.mapToProto(timestamp))
                 .build();
     }
 

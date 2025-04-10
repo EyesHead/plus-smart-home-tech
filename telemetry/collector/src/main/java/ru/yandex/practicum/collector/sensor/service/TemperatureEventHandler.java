@@ -29,7 +29,7 @@ public class TemperatureEventHandler implements SensorEventHandler {
         SensorEventAvro sensorEventAvro = SensorEventAvro.newBuilder()
                 .setId(sensorEventProto.getId())
                 .setHubId(sensorEventProto.getHubId())
-                .setTimestamp(TimestampMapper.mapToInstant(sensorEventProto.getTimestamp()))
+                .setTimestamp(TimestampMapper.mapToAvro(sensorEventProto.getTimestamp()))
                 .setPayload(temperatureSensorAvro)
                 .build();
 

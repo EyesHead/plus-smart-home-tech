@@ -62,7 +62,7 @@ public class AggregationStarter {
             while (true) {
                 ConsumerRecords<Void, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
                 if (!records.isEmpty()) {
-                    log.debug("Было получено {} сообщений}", records.count());
+                    log.debug("Из топика {} было получено {} сообщений}", consumerConfig.getTopic(), records.count());
                     processRecords(records);
                     log.info("------------------------------------------------");
                 }

@@ -28,7 +28,7 @@ public class SwitchSensorEventHandler implements SensorEventHandler {
 
         SensorEventAvro sensorEventAvro = SensorEventAvro.newBuilder()
                 .setId(sensorEventProto.getId())
-                .setTimestamp(TimestampMapper.mapToInstant(sensorEventProto.getTimestamp()))
+                .setTimestamp(TimestampMapper.mapToAvro(sensorEventProto.getTimestamp()))
                 .setHubId(sensorEventProto.getHubId())
                 .setPayload(switchSensorAvro)
                 .build();
