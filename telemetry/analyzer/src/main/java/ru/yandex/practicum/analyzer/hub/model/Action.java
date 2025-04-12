@@ -14,7 +14,7 @@ import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 @ToString
 public class Action {
     @Id
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "type", nullable = false, columnDefinition = "smallint")
