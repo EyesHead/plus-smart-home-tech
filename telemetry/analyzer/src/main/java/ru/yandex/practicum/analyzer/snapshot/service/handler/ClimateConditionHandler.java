@@ -29,7 +29,7 @@ public class ClimateConditionHandler implements ConditionHandler {
         }
 
         log.debug("Сравниваем данные датчика климата = {} с данными операции условия = {} по полю {} и оператором {}",
-                sensorValue, conditionValue, condition.getType(), condition.getOperation());
+                sensorValue, conditionValue, condition.getValue(), condition.getOperation());
         return switch (condition.getOperation()) {
             case ConditionOperationAvro.GREATER_THAN -> sensorValue > conditionValue;
             case ConditionOperationAvro.LOWER_THAN -> sensorValue < conditionValue;

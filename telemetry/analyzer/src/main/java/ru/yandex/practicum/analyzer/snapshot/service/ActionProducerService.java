@@ -12,16 +12,16 @@ import ru.yandex.practicum.grpc.telemetry.hubrouter.HubRouterControllerGrpc;
 @Slf4j
 @RequiredArgsConstructor
 public class ActionProducerService {
-    @GrpcClient("hub-router") // внедрение с параметром "echo" — это отсылка к блоку конфигурации
+    @GrpcClient("hub-router")
     HubRouterControllerGrpc.HubRouterControllerBlockingStub hubRouterController;
 
     public void handleDeviceAction(DeviceActionRequest deviceAction) {
         try {
             // отправка сообщения с помощью готового к использованию метода
             hubRouterController.handleDeviceAction(deviceAction);
-            log.info("Action was send");
+            log.info("gRPC: DeviceActionRequest был отправлен из analyzer");
         } catch (StatusRuntimeException e) {
-            log.error("Failed to send action: {}", e.getStatus(), e);
+            log.error("gRPC: Ошибка отправки сообщения из analyzer: {}", e.getStatus(), e);
         }
     }
 }
