@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.analyzer.hub.HubEventProcessor;
+import ru.yandex.practicum.analyzer.event.HubEventProcessor;
 import ru.yandex.practicum.analyzer.snapshot.SnapshotProcessor;
 
 @Component
