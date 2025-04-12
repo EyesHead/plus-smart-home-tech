@@ -1,4 +1,4 @@
-package ru.yandex.practicum.analyzer.event.handler;
+package ru.yandex.practicum.analyzer.event.service.handler;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

@@ -2,6 +2,7 @@ package ru.yandex.practicum.analyzer.event.factory;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.analyzer.event.model.Action;
@@ -22,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ScenarioFactory {
@@ -72,6 +74,7 @@ public class ScenarioFactory {
                         conditionAvro.getSensorId());
             }
             Condition condition = conditionService.save(conditionAvro);
+            log.debug("Condition был успешно создан и сохранён в БД: {}", condition);
             scenario.getConditions().put(sensor.getId(), condition);
         });
     }
@@ -86,6 +89,7 @@ public class ScenarioFactory {
                         actionAvro.getSensorId());
             }
             Action action = actionService.save(actionAvro);
+            log.debug("Action был успешно создан и сохранён в БД: {}", action);
             scenario.getActions().put(actionAvro.getSensorId(), action);
         });
     }

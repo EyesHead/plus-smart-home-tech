@@ -1,8 +1,7 @@
-package ru.yandex.practicum.analyzer.event.fa;
+package ru.yandex.practicum.analyzer.event.factory;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.analyzer.event.factory.ConditionCreator;
 import ru.yandex.practicum.analyzer.event.model.Condition;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
 
