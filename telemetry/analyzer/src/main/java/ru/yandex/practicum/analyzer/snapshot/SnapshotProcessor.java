@@ -37,7 +37,6 @@ public class SnapshotProcessor {
     }
 
     public void start() {
-        log.info("Запуск обработчика сообщений");
         try {
             while (true) {
                 ConsumerRecords<Void, SensorsSnapshotAvro> records = snapshotConsumer.poll(Duration.ofMillis(500));

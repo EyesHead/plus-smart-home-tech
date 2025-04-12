@@ -5,7 +5,7 @@ import ru.yandex.practicum.analyzer.hub.model.Action;
 import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceActionAvro;
 
-@Component("defaultActionCreator")
+@Component
 public class DefaultActionCreator implements ActionCreator {
     @Override
     public Action create(DeviceActionAvro actionAvro) {

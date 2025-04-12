@@ -27,30 +27,21 @@ public class Scenario {
     @Column(name = "hub_id", nullable = false)
     String hubId;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn
-    @MapKeyColumn(
-            table = "scenario_conditions",
-            name = "sensor_id"
-    )
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
             name = "scenario_conditions",
             joinColumns = @JoinColumn(name = "scenario_id"),
             inverseJoinColumns = @JoinColumn(name = "condition_id")
     )
-    Map<String, Condition> conditions = new HashMap<>();
+    @MapKeyColumn(name = "sensor_id")
+    private Map<String, Condition> conditions = new HashMap<>();
 
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn
-    @MapKeyColumn(
-            table = "scenario_actions",
-            name = "sensor_id"
-    )
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
             name = "scenario_actions",
             joinColumns = @JoinColumn(name = "scenario_id"),
             inverseJoinColumns = @JoinColumn(name = "action_id")
     )
-    Map<String, Action> actions = new HashMap<>();
+    @MapKeyColumn(name = "sensor_id")
+    private Map<String, Action> actions = new HashMap<>();
 }

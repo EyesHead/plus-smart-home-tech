@@ -32,7 +32,7 @@ public class HubEventProcessor implements Runnable {
             while (true) {
                 ConsumerRecords<Void, HubEventAvro> records = consumer.poll(Duration.ofMillis(500));
                 if (!records.isEmpty()) {
-                    log.debug("Из топика {} было получено {} сообщений", consumerConfig.getTopic(), records.count());
+                    log.info("В сервис analyzer из топика {} было получено {} сообщений", consumerConfig.getTopic(), records.count());
                     processRecords(records);
                     log.info("------------------------------------------------------");
                 }
