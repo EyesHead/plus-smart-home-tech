@@ -56,13 +56,14 @@ public class SnapshotRequestService {
                 .stream()
                 .collect(Collectors.toMap(Sensor::getId, Function.identity()));
 
-        log.debug("Found {} sensors for hub {}", sensorsWithIds.size(), hubId);
+        log.debug("Было найдено {} датчика у хаба с hubId = {}", sensorsWithIds.size(), hubId);
 
         // Обрабатываем сценарии
         return scenarios.stream()
                 .filter(scenario -> isScenarioTriggered(scenario, sensorsSnapshot, sensorsWithIds))
                 .peek(scenario -> log.debug("Scenario '{}' triggered", scenario.getName()))
                 .flatMap(scenario -> mapScenarioActionsToResponseActions(scenario, sensorsSnapshot, sensorsWithIds))
+                .peek(deviceActionRequest -> log.debug("DeviceActionRequest был создан: {}", deviceActionRequest))
                 .collect(Collectors.toList());
     }
 
@@ -133,13 +134,29 @@ public class SnapshotRequestService {
                                                         String scenarioName,
                                                         String sensorId,
                                                         Action action) {
+        DeviceActionProto.Builder actionBuilder = DeviceActionProto.newBuilder()
+                .setSensorId(sensorId)
+                .setType(mapActionType(action.getType()));
+
+        // Для SET_VALUE обязательно должно быть значение
+        if (action.getType() == ActionTypeAvro.SET_VALUE) {
+            if (action.getValue() == null) {
+                log.error("SET_VALUE action requires value for sensor {} in scenario {}",
+                        sensorId, scenarioName);
+                return null;
+            }
+            actionBuilder.setValue(action.getValue());
+        }
+        // Для других типов действий значение необязательно
+        else if (action.getValue() != null) {
+            actionBuilder.setValue(action.getValue());
+        }
+
+        // Если значение null и тип не SET_VALUE - не устанавливаем value вообще
         return DeviceActionRequest.newBuilder()
                 .setHubId(hubId)
                 .setScenarioName(scenarioName)
-                .setAction(DeviceActionProto.newBuilder()
-                        .setSensorId(sensorId)
-                        .setType(mapActionType(action.getType()))
-                        .setValue(action.getValue()))
+                .setAction(actionBuilder)
                 .setTimestamp(TimestampMapper.mapToProto(timestamp))
                 .build();
     }

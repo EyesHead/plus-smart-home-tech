@@ -75,7 +75,10 @@ public class SnapshotProcessor {
             log.info("В процессе анализа снимка сенсоров было создано {} событий для датчиков", deviceActions.size());
 
             if (!deviceActions.isEmpty()) {
-                deviceActions.forEach(actionProducer::handleDeviceAction);
+                deviceActions.forEach(deviceAction -> {
+                    log.info("Событие для датчика готово к отправке по gRPC: {}", deviceAction);
+                    actionProducer.handleDeviceAction(deviceAction);
+                });
             } else {
                 log.info("В процессе анализа снимка сенсоров не было создано ни одного ответного события для датчиков");
             }
