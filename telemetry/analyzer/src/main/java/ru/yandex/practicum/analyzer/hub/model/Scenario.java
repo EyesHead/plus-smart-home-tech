@@ -1,10 +1,7 @@
 package ru.yandex.practicum.analyzer.hub.model;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.HashMap;
@@ -16,6 +13,7 @@ import java.util.Map;
 @Setter
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString
 public class Scenario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

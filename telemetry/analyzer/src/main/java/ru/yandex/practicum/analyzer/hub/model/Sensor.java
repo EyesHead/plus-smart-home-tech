@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import ru.yandex.practicum.analyzer.hub.model.enumconverter.DeviceTypeDatabaseConverter;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceTypeAvro;
 
@@ -12,6 +13,7 @@ import ru.yandex.practicum.kafka.telemetry.event.DeviceTypeAvro;
 @NoArgsConstructor
 @Setter
 @Getter
+@ToString
 public class Sensor {
     @Id
     private String id;

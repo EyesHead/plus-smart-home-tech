@@ -3,6 +3,7 @@ package ru.yandex.practicum.analyzer.hub.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import ru.yandex.practicum.analyzer.hub.model.enumconverter.ConditionOperationDatabaseConverter;
 import ru.yandex.practicum.analyzer.hub.model.enumconverter.ConditionTypeDatabaseConverter;
 import ru.yandex.practicum.kafka.telemetry.event.ConditionOperationAvro;
@@ -12,6 +13,7 @@ import ru.yandex.practicum.kafka.telemetry.event.ConditionTypeAvro;
 @Setter
 @Entity
 @Table(name = "conditions")
+@ToString
 public class Condition {
     @Id
     @Column(name = "id", nullable = false)

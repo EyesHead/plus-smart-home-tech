@@ -3,6 +3,7 @@ package ru.yandex.practicum.analyzer.hub.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import ru.yandex.practicum.analyzer.hub.model.enumconverter.ActionTypeDatabaseConverter;
 import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 
@@ -10,6 +11,7 @@ import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 @Setter
 @Entity
 @Table(name = "actions")
+@ToString
 public class Action {
     @Id
     @Column(name = "id", nullable = false)
