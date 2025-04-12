@@ -34,22 +34,24 @@ public class ScenarioFactory {
     @Transactional
     public Scenario createScenario(HubEventAvro hubEventAvro, ScenarioAddedEventAvro scenarioAvro) {
         Scenario scenario = new Scenario();
+        log.info("HubEventAvro toString: {}", hubEventAvro);
+
         scenario.setHubId(hubEventAvro.getHubId());
         scenario.setName(scenarioAvro.getName());
 
-        // Собираем все ID сенсоров
+        // Собираем все ID сенсоров из сценария (все действия + все условия)
         Set<String> sensorIds = collectAllSensorIds(scenarioAvro);
 
-        // Загружаем все сенсоры одним запросом
+        // Загружаем все сенсоры одним запросом, key - id сенсора
         Map<String, Sensor> sensors = loadSensors(sensorIds);
 
         // Добавляем условия
-        addConditionsToScenario(scenario, scenarioAvro, sensors);
+        Scenario scenarioWithConditions = addConditionsToScenario(scenario, scenarioAvro, sensors);
 
         // Добавляем действия
-        addActionsToScenario(scenario, scenarioAvro, sensors);
+        Scenario scenarioFullyUpdated = addActionsToScenario(scenarioWithConditions, scenarioAvro, sensors);
 
-        return scenario;
+        return scenarioFullyUpdated;
     }
 
     private Set<String> collectAllSensorIds(ScenarioAddedEventAvro scenarioAvro) {
@@ -64,9 +66,9 @@ public class ScenarioFactory {
                 .collect(Collectors.toMap(Sensor::getId, Function.identity()));
     }
 
-    private void addConditionsToScenario(Scenario scenario,
-                                         ScenarioAddedEventAvro scenarioAvro,
-                                         Map<String, Sensor> sensors) {
+    private Scenario addConditionsToScenario(Scenario scenario,
+                                             ScenarioAddedEventAvro scenarioAvro,
+                                             Map<String, Sensor> sensors) {
         scenarioAvro.getConditions().forEach(conditionAvro -> {
             Sensor sensor = sensors.get(conditionAvro.getSensorId());
             if (sensor == null) {
@@ -77,11 +79,12 @@ public class ScenarioFactory {
             log.debug("Condition был успешно создан и сохранён в БД: {}", condition);
             scenario.getConditions().put(sensor.getId(), condition);
         });
+        return scenario;
     }
 
-    private void addActionsToScenario(Scenario scenario,
-                                      ScenarioAddedEventAvro scenarioAvro,
-                                      Map<String, Sensor> sensors) {
+    private Scenario addActionsToScenario(Scenario scenario,
+                                          ScenarioAddedEventAvro scenarioAvro,
+                                          Map<String, Sensor> sensors) {
         scenarioAvro.getActions().forEach(actionAvro -> {
             Sensor sensor = sensors.get(actionAvro.getSensorId());
             if (sensor == null) {
@@ -92,5 +95,6 @@ public class ScenarioFactory {
             log.debug("Action был успешно создан и сохранён в БД: {}", action);
             scenario.getActions().put(actionAvro.getSensorId(), action);
         });
+        return scenario;
     }
 }

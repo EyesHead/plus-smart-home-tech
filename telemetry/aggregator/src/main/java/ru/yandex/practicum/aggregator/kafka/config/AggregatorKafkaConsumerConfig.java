@@ -10,8 +10,8 @@ import java.util.Properties;
 @ConfigurationProperties("aggregator.kafka-consumer")
 @AllArgsConstructor
 public class AggregatorKafkaConsumerConfig {
-    private Map<String, String> properties;
-    private String topic;
+    private final Map<String, String> properties;
+    private final String topic;
 
     public Properties getProperties() {
         Properties props = new Properties();

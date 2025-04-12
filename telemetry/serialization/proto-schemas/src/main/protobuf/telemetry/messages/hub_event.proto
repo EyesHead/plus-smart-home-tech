@@ -33,7 +33,7 @@ message DeviceAddedEventProto {
 }
 
 message DeviceRemovedEventProto {
-  string id = 1;          // идентификатор устройства
+  string id = 1;          // идентификатор устройства (уникальный в рамках хаба)
 }
 
 // события создания/удаления сценариев

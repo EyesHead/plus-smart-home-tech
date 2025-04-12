@@ -1,5 +1,6 @@
 package ru.yandex.practicum.analyzer.event;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -27,7 +28,6 @@ public class HubEventProcessor implements Runnable {
     @Override
     public void run() {
         log.info("Запуск обработчика сообщений");
-        init();
         try {
             while (true) {
                 ConsumerRecords<Void, HubEventAvro> records = consumer.poll(Duration.ofMillis(500));
@@ -46,6 +46,7 @@ public class HubEventProcessor implements Runnable {
         }
     }
 
+    @PostConstruct
     private void init() {
         try {
             this.consumer = new KafkaConsumer<>(consumerConfig.getProperties());

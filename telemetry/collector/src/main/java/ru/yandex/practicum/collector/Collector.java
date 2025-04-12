@@ -10,9 +10,9 @@ import ru.yandex.practicum.collector.kafka.config.CollectorKafkaProducerConfig;
 @SpringBootApplication
 @EnableConfigurationProperties(CollectorKafkaProducerConfig.class)
 @Slf4j
-public class CollectorApplication {
+public class Collector {
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(CollectorApplication.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(Collector.class, args);
         CollectorKafkaProducerConfig config = context.getBean(CollectorKafkaProducerConfig.class);
         log.info("Producer: {}", config.getProperties());
         log.info("Topics: hubTopic: {}, sensorTopic: {}", config.getHubTopic(), config.getSensorTopic());

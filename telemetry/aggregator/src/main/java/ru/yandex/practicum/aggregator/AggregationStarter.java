@@ -1,5 +1,6 @@
 package ru.yandex.practicum.aggregator;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -43,6 +44,7 @@ public class AggregationStarter {
         this.producerConfig = producerConfig;
     }
 
+    @PostConstruct
     private void init() {
         try {
             this.consumer = new KafkaConsumer<>(consumerConfig.getProperties());
@@ -58,7 +60,6 @@ public class AggregationStarter {
     public void start() {
         try {
             log.info("Запуск обработчика сообщений");
-            init();
             while (true) {
                 ConsumerRecords<Void, SensorEventAvro> records = consumer.poll(Duration.ofMillis(500));
                 if (!records.isEmpty()) {

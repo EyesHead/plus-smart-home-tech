@@ -19,7 +19,7 @@ public class DefaultActionCreator implements ActionCreator {
 
     private void validateAction(DeviceActionAvro action) {
         if (action.getType() == ActionTypeAvro.SET_VALUE && action.getValue() == null) {
-            throw new IllegalArgumentException("Для значения поля SET_VALUE у действия должно быть поле value");
+            throw new IllegalArgumentException("For Action with SET_VALUE field value is required");
         }
     }
 }
