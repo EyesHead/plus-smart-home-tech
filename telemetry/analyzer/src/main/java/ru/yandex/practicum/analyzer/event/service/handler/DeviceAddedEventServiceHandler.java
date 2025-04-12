@@ -1,4 +1,4 @@
-package ru.yandex.practicum.analyzer.event.handler;
+package ru.yandex.practicum.analyzer.event.service.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

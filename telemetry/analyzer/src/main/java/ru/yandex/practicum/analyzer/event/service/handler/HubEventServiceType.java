@@ -1,4 +1,4 @@
-package ru.yandex.practicum.analyzer.event.handler;
+package ru.yandex.practicum.analyzer.event.service.handler;
 
 public enum HubEventServiceType {
     DEVICE_ADDED_EVENT,

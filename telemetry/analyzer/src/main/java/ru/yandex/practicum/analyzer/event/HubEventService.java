@@ -2,8 +2,8 @@ package ru.yandex.practicum.analyzer.event;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.analyzer.event.handler.HubEventServiceHandler;
-import ru.yandex.practicum.analyzer.event.handler.HubEventServiceType;
+import ru.yandex.practicum.analyzer.event.service.handler.HubEventServiceHandler;
+import ru.yandex.practicum.analyzer.event.service.handler.HubEventServiceType;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 import java.util.Map;

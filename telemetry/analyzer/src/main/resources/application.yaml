@@ -5,7 +5,7 @@ analyzer:
       "bootstrap.servers": "localhost:9092"
       "group.id": "hub-events-group"
       "key.deserializer": "org.apache.kafka.common.serialization.VoidDeserializer"
-      "value.deserializer": "ru.yandex.practicum.analyzer.hub.kafka.deserializer.HubEventDeserializer"
+      "value.deserializer": "ru.yandex.practicum.analyzer.event.kafka.deserializer.HubEventDeserializer"
       "enable.auto.commit": "true"
 
   snapshot-consumer:
