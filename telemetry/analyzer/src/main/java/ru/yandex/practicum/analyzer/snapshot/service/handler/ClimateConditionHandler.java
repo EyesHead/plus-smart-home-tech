@@ -2,7 +2,7 @@ package ru.yandex.practicum.analyzer.snapshot.service.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.analyzer.hub.model.Condition;
+import ru.yandex.practicum.analyzer.event.model.Condition;
 import ru.yandex.practicum.kafka.telemetry.event.ClimateSensorAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ConditionOperationAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceTypeAvro;
