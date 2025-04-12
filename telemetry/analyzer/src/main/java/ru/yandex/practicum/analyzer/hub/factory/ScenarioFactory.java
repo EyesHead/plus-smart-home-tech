@@ -28,17 +28,15 @@ public class ScenarioFactory {
     private final ConditionCreator conditionCreator;
 
     @Transactional
-    public Scenario createScenario(HubEventAvro hubEventAvro) {
+    public Scenario createScenario(HubEventAvro hubEventAvro, ScenarioAddedEventAvro scenarioAvro) {
         Scenario scenario = new Scenario();
         scenario.setHubId(hubEventAvro.getHubId());
-
-        ScenarioAddedEventAvro event = (ScenarioAddedEventAvro) hubEventAvro.getPayload();
-        scenario.setName(event.getName());
+        scenario.setName(scenarioAvro.getName());
 
         // Собираем все ID сенсоров
         Set<String> sensorIds = Stream.concat(
-                event.getConditions().stream().map(ScenarioConditionAvro::getSensorId),
-                event.getActions().stream().map(DeviceActionAvro::getSensorId)
+                scenarioAvro.getConditions().stream().map(ScenarioConditionAvro::getSensorId),
+                scenarioAvro.getActions().stream().map(DeviceActionAvro::getSensorId)
         ).collect(Collectors.toSet());
 
         // Загружаем все сенсоры одним запросом
@@ -46,23 +44,23 @@ public class ScenarioFactory {
                 .collect(Collectors.toMap(Sensor::getId, Function.identity()));
 
         // Создаем условия и создаем связи в scenario_conditions
-        event.getConditions().forEach(conditionAvro -> {
-            Sensor sensor = sensors.get(conditionAvro.getSensorId());
+        scenarioAvro.getConditions().forEach(scenarioConditionAvro -> {
+            Sensor sensor = sensors.get(scenarioConditionAvro.getSensorId());
             if (sensor == null) {
-                throw new EntityNotFoundException("Sensor not found: " + conditionAvro.getSensorId());
+                throw new EntityNotFoundException("Sensor не найден в БД. sensorId = " +
+                        scenarioConditionAvro.getSensorId());
             }
 
-            Condition condition = conditionCreator.create(conditionAvro);
-            scenario.getConditions().put(conditionAvro.getSensorId(), condition);
+            Condition condition = conditionCreator.create(scenarioConditionAvro);
+            scenario.getConditions().put(sensor.getId(), condition);
         });
 
         // Создаем действия и создаем связи в scenario_actions
-        event.getActions().forEach(actionAvro -> {
+        scenarioAvro.getActions().forEach(actionAvro -> {
             Sensor sensor = sensors.get(actionAvro.getSensorId());
             if (sensor == null) {
-                throw new EntityNotFoundException("Sensor not found: " + actionAvro.getSensorId());
+                throw new EntityNotFoundException("Sensor не найден в БД. sensorId: " + actionAvro.getSensorId());
             }
-
             Action action = actionCreator.create(actionAvro);
             scenario.getActions().put(actionAvro.getSensorId(), action);
         });

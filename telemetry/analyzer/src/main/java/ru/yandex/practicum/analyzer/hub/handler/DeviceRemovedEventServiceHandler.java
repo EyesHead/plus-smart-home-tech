@@ -2,6 +2,7 @@ package ru.yandex.practicum.analyzer.hub.handler;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.analyzer.hub.model.Sensor;
@@ -11,6 +12,7 @@ import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DeviceRemovedEventServiceHandler implements HubEventServiceHandler {
     private final SensorRepository sensorRepository;
 
@@ -23,8 +25,10 @@ public class DeviceRemovedEventServiceHandler implements HubEventServiceHandler 
         Sensor sensor = sensorRepository.findById(sensorId)
                 .orElseThrow(() -> new EntityNotFoundException("Sensor not found: " + sensorId));
 
+        log.debug("Sensor будет удалён из БД. {}", sensor);
+
         // Все связи удалятся автоматически благодаря orphanRemoval
-        sensorRepository.delete(sensor);
+        sensorRepository.deleteById(sensorId);
     }
 
     @Override

@@ -1,10 +1,12 @@
 package ru.yandex.practicum.analyzer.hub.factory;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.analyzer.hub.model.Condition;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
 
-@Component("defaultConditionCreator")
+@Component
+@Slf4j
 public class DefaultConditionCreator implements ConditionCreator {
     @Override
     public Condition create(ScenarioConditionAvro conditionAvro) {
@@ -12,6 +14,7 @@ public class DefaultConditionCreator implements ConditionCreator {
         condition.setType(conditionAvro.getType());
         condition.setOperation(conditionAvro.getOperation());
         condition.setValue(convertValue(conditionAvro.getValue()));
+        log.debug("ScenarioConditionAvro был переведен в Condition: {}", condition);
         return condition;
     }
 

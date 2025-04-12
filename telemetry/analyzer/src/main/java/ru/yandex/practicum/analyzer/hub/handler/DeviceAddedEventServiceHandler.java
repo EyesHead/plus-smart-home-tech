@@ -1,6 +1,7 @@
 package ru.yandex.practicum.analyzer.hub.handler;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.analyzer.hub.model.Sensor;
@@ -10,6 +11,7 @@ import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class DeviceAddedEventServiceHandler implements HubEventServiceHandler {
     private final SensorRepository repository;
 
@@ -29,6 +31,8 @@ public class DeviceAddedEventServiceHandler implements HubEventServiceHandler {
         sensor.setHubId(hubEventAvro.getHubId());
         sensor.setType(sensorData.getType());
         sensor.setId(sensorData.getId());
+
+        log.debug("HubEventAvro был переведен в Sensor и будет сохранён в БД: {}", sensor);
 
         return sensor;
     }
