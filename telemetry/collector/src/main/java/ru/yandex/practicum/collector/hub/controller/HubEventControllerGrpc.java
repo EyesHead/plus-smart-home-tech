@@ -1,6 +1,7 @@
 package ru.yandex.practicum.collector.hub.controller;
 
 import com.google.protobuf.Empty;
+import com.google.protobuf.TextFormat;
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
@@ -31,7 +32,8 @@ public class HubEventControllerGrpc {
     }
 
     public void collectHubEvent(HubEventProto request, StreamObserver<Empty> responseObserver) {
-        log.info("Получен запрос от gRPC метода collectHubEvent с proto схемой запроса: {}", request);
+        log.info("Пришли данные hubEvent в формате protobuff: {}",
+                TextFormat.printer().escapingNonAscii(false).printToString(request));
         HubEventProto.PayloadCase hubEventType = request.getPayloadCase();
 
         try {

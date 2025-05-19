@@ -33,23 +33,28 @@ public class ScenarioFactory {
 
     @Transactional
     public Scenario createScenario(HubEventAvro hubEventAvro, ScenarioAddedEventAvro scenarioAvro) {
+
+        log.info("Создание нового сценария с именем '{}' для хаба {}", scenarioAvro.getName(), hubEventAvro.getHubId());
         Scenario scenario = new Scenario();
-        log.info("HubEventAvro toString: {}", hubEventAvro);
 
         scenario.setHubId(hubEventAvro.getHubId());
         scenario.setName(scenarioAvro.getName());
 
-        // Собираем все ID сенсоров из сценария (все действия + все условия)
+        // Сбор всех идентификаторов сенсоров
         Set<String> sensorIds = collectAllSensorIds(scenarioAvro);
+        log.debug("Собраны идентификаторы сенсоров: {}", sensorIds);
 
-        // Загружаем все сенсоры одним запросом, key - id сенсора
+        // Получение всех сенсоров сразу одним запросом
         Map<String, Sensor> sensors = loadSensors(sensorIds);
+        log.debug("Получены сенсоры: {}", sensors.keySet());
 
-        // Добавляем условия
+        // Создание и добавление условий
         Scenario scenarioWithConditions = addConditionsToScenario(scenario, scenarioAvro, sensors);
+        log.debug("Добавлены условия к сценарию: {}", scenarioWithConditions.getConditions());
 
-        // Добавляем действия
+        // Создание и добавление действий
         Scenario scenarioFullyUpdated = addActionsToScenario(scenarioWithConditions, scenarioAvro, sensors);
+        log.debug("Добавлены действия к сценарию: {}", scenarioFullyUpdated.getActions());
 
         return scenarioFullyUpdated;
     }
@@ -76,7 +81,7 @@ public class ScenarioFactory {
                         conditionAvro.getSensorId());
             }
             Condition condition = conditionService.save(conditionAvro);
-            log.debug("Condition был успешно создан и сохранён в БД: {}", condition);
+            log.debug("Condition сохранён в БД: {}", condition);
             scenario.getConditions().put(sensor.getId(), condition);
         });
         return scenario;

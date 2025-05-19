@@ -32,7 +32,6 @@ public class HubEventProcessor implements Runnable {
             while (true) {
                 ConsumerRecords<Void, HubEventAvro> records = consumer.poll(Duration.ofMillis(500));
                 if (!records.isEmpty()) {
-                    log.info("В сервис analyzer из топика {} было получено {} сообщений", consumerConfig.getTopic(), records.count());
                     processRecords(records);
                     log.info("------------------------------------------------------");
                 }
@@ -61,7 +60,6 @@ public class HubEventProcessor implements Runnable {
     private void processRecords(ConsumerRecords<Void, HubEventAvro> records) {
         for (ConsumerRecord<Void, HubEventAvro> record : records) {
             HubEventAvro hubEventAvro = record.value();
-            log.info("Начинаю обработку события хаба: {}", hubEventAvro);
 
             service.handleRequestEvent(hubEventAvro);
         }

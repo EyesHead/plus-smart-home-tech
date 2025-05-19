@@ -6,9 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.analyzer.event.model.Action;
 import ru.yandex.practicum.analyzer.event.model.Condition;
 import ru.yandex.practicum.analyzer.event.model.Scenario;
-import ru.yandex.practicum.analyzer.event.model.Sensor;
 import ru.yandex.practicum.analyzer.event.repository.ScenarioRepository;
-import ru.yandex.practicum.analyzer.event.repository.SensorRepository;
 import ru.yandex.practicum.analyzer.snapshot.service.handler.ConditionHandlerFactory;
 import ru.yandex.practicum.avro.mapper.SnapshotMapper;
 import ru.yandex.practicum.avro.mapper.TimestampMapper;
@@ -24,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,7 +30,6 @@ import java.util.stream.Stream;
 @Slf4j
 public class SnapshotRequestService {
     private final ScenarioRepository scenarioRepository;
-    private final SensorRepository sensorRepository;
     private final ConditionHandlerFactory conditionHandlerFactory;
 
     public List<DeviceActionRequest> prepareDeviceActions(SensorsSnapshotAvro sensorsSnapshot) {
@@ -42,7 +38,7 @@ public class SnapshotRequestService {
 
         List<Scenario> scenarios = scenarioRepository.findByHubId(hubId);
         if (scenarios.isEmpty()) {
-            log.warn("Не найдено сценариев для хаба с id = {}. Событий для девайсов не будет создано", hubId);
+            log.warn("Не найдено сценариев для хаба с id = {}. События для девайсов не будут созданы", hubId);
             return Collections.emptyList();
         }
 
@@ -51,7 +47,9 @@ public class SnapshotRequestService {
         return scenarios.stream()
                 .filter(scenario -> {
                     boolean isScenarioTriggered = checkIfScenarioTriggered(scenario, sensorsSnapshot, sensorsMap);
-                    //TODO log.debug("???");
+                    if (!isScenarioTriggered) {
+                        log.debug("Сценарий {} не удовлетворяет условиям", scenario.getName());
+                    }
                     return isScenarioTriggered;
                 })
                 .flatMap(scenario -> mapScenarioToDeviceActions(scenario, sensorsSnapshot, sensorsMap))
@@ -59,22 +57,14 @@ public class SnapshotRequestService {
                 .collect(Collectors.toList());
     }
 
-//    private Map<String, Sensor> getSensorsMap(SensorsSnapshotAvro sensorsSnapshot) {
-//        List<String> sensorIds = List.copyOf(sensorsSnapshot.getSensorsState().keySet());
-//        return sensorRepository.findAllByIdIn(sensorIds).stream()
-//                .collect(Collectors.toMap(Sensor::getId, Function.identity()));
-//    }
-
-    /**
-     * @param scenario - Сценарий, условия которого должны быть выполнены
-     * @param snapshot -
-     * @param sensorsMap
-     * @return Если все условия сценария выполнены, то метод вернет {@code true}.
-     * Если хотя бы одно условие не выполнено - {@code false}
-     */
     private boolean checkIfScenarioTriggered(Scenario scenario,
                                              SensorsSnapshotAvro snapshot,
                                              Map<String, SensorStateAvro> sensorsMap) {
+        if (!sensorsMap.containsKey(scenario.getHubId())) {
+            log.debug("Нет состояния для хаб-устройства {}", scenario.getHubId());
+            return false;
+        }
+
         return scenario.getConditions().entrySet().stream()
                 .allMatch(entry -> checkCondition(entry, snapshot, sensorsMap));
     }
@@ -96,7 +86,7 @@ public class SnapshotRequestService {
             return false;
         }
 
-        return conditionHandlerFactory.getHandler(SnapshotMapper.mapSnapshotToSensorType(sensor.getData()))
+        return conditionHandlerFactory.getHandler(SnapshotMapper.mapSnapshotToSensorType(state.getData()))
                 .isTriggered(conditionEntry.getValue(), state);
     }
 
@@ -111,7 +101,8 @@ public class SnapshotRequestService {
                         scenario.getName(),
                         entry.getKey(),
                         entry.getValue()
-                ));
+                ))
+                .filter(Objects::nonNull);
     }
 
     private DeviceActionRequest createDeviceActionRequest(String hubId,
@@ -120,8 +111,7 @@ public class SnapshotRequestService {
                                                           String sensorId,
                                                           Action action) {
         if (action.getType() == ActionTypeAvro.SET_VALUE && action.getValue() == null) {
-            log.error("SET_VALUE action requires value for sensor {} in scenario {}",
-                    sensorId, scenarioName);
+            log.warn("Действие SET_VALUE требует значение для сенсора {} в сценарии {}, пропускаю...", sensorId, scenarioName);
             return null;
         }
 
