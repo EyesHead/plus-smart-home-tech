@@ -31,6 +31,7 @@ public class HubEventService {
         log.info("Начинаю обработку события хаба: {}", handlerType);
         // Обработка события hub
         hubEventHandlers.get(handlerType).handleEvent(requestEvent);
+        log.info("------------------------------------------------------");
     }
 
     private HubEventServiceType getHubEventPayloadType(HubEventAvro hubEventAvro) {
