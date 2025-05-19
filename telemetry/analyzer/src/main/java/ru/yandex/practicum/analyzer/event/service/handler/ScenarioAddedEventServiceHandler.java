@@ -20,7 +20,7 @@ public class ScenarioAddedEventServiceHandler implements HubEventServiceHandler 
     @Override
     @Transactional
     public void handleEvent(HubEventAvro hubEventAvro) {
-        log.debug("Начало сохранения сценария из HubEventAvro в базу данных");
+        log.debug("Сохранение сценария из данных HubEventAvro в базу данных: {}", hubEventAvro);
         ScenarioAddedEventAvro scenarioAvro = (ScenarioAddedEventAvro) hubEventAvro.getPayload();
 
         if (scenarioRepository.existsByHubIdAndName(hubEventAvro.getHubId(), scenarioAvro.getName())) {

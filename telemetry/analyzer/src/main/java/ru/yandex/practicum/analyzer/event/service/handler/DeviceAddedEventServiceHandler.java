@@ -24,6 +24,7 @@ public class DeviceAddedEventServiceHandler implements HubEventServiceHandler {
     }
 
     private Sensor createSensor(HubEventAvro hubEventAvro) {
+        log.debug("Добавление сенсора из следующих данных: {}", hubEventAvro);
         DeviceAddedEventAvro sensorData = (DeviceAddedEventAvro) hubEventAvro.getPayload();
 
         Sensor sensor = new Sensor();
@@ -32,7 +33,7 @@ public class DeviceAddedEventServiceHandler implements HubEventServiceHandler {
         sensor.setType(sensorData.getType());
         sensor.setId(sensorData.getId());
 
-        log.debug("HubEventAvro был переведен в Sensor и будет сохранён в БД: {}", sensor);
+        log.debug("Данные были переведен в объект Sensor и будут сохранёны в БД: {}", sensor);
 
         return sensor;
     }

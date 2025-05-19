@@ -1,5 +1,6 @@
 package ru.yandex.practicum.analyzer.snapshot;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -33,16 +34,12 @@ public class SnapshotProcessor {
         this.actionProducer = actionProducer;
         this.consumerConfig = consumerConfig;
         this.snapshotService = snapshotService;
-        initConsumer();
     }
 
     public void start() {
         try {
             while (true) {
                 ConsumerRecords<Void, SensorsSnapshotAvro> records = snapshotConsumer.poll(Duration.ofMillis(500));
-                if (!records.isEmpty()) {
-                    log.debug("Из топика {} было получено {} сообщений", consumerConfig.getTopic(), records.count());
-                }
                 handleRecords(records);
             }
         } catch (WakeupException ignored) {
@@ -54,6 +51,7 @@ public class SnapshotProcessor {
         }
     }
 
+    @PostConstruct
     private void initConsumer() {
         try {
             this.snapshotConsumer = new KafkaConsumer<>(consumerConfig.getProperties());
@@ -72,8 +70,6 @@ public class SnapshotProcessor {
 
             List<DeviceActionRequest> deviceActions = snapshotService.prepareDeviceActions(sensorsSnapshot);
 
-            log.info("В процессе анализа снимка сенсоров было создано {} событий для датчиков", deviceActions.size());
-
             if (!deviceActions.isEmpty()) {
                 deviceActions.forEach(deviceAction -> {
                     log.info("Событие для датчика готово к отправке по gRPC: {}", deviceAction);
@@ -82,7 +78,6 @@ public class SnapshotProcessor {
             } else {
                 log.info("В процессе анализа снимка сенсоров не было создано ни одного ответного события для датчиков");
             }
-
             log.info("------------------------------------------------------");
         }
     }

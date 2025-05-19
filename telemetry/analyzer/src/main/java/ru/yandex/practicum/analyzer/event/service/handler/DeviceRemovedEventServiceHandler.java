@@ -23,12 +23,12 @@ public class DeviceRemovedEventServiceHandler implements HubEventServiceHandler 
         String sensorId = event.getId();
 
         Sensor sensor = sensorRepository.findById(sensorId)
-                .orElseThrow(() -> new EntityNotFoundException("Sensor not found: " + sensorId));
+                .orElseThrow(() -> new EntityNotFoundException("Сенсор с id = {} не найден в БД: " + sensorId));
 
-        log.debug("Sensor будет удалён из БД. {}", sensor);
+        log.debug("Sensor с id = {} будет удалён из БД", sensor.getId());
 
         // Все связи удалятся автоматически благодаря orphanRemoval
-        sensorRepository.deleteById(sensorId);
+        sensorRepository.delete(sensor);
     }
 
     @Override

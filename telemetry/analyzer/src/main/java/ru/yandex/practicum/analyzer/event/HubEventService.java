@@ -1,5 +1,6 @@
 package ru.yandex.practicum.analyzer.event;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.analyzer.event.service.handler.HubEventServiceHandler;
@@ -12,6 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class HubEventService {
     private final Map<HubEventServiceType, HubEventServiceHandler> hubEventHandlers;
 
@@ -26,7 +28,7 @@ public class HubEventService {
 
     public void handleRequestEvent(HubEventAvro requestEvent) {
         HubEventServiceType handlerType = getHubEventPayloadType(requestEvent);
-
+        log.info("Начинаю обработку события хаба: {}", handlerType);
         // Обработка события hub
         hubEventHandlers.get(handlerType).handleEvent(requestEvent);
     }

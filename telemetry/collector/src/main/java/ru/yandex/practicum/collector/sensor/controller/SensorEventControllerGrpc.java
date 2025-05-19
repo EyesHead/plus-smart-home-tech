@@ -1,6 +1,7 @@
 package ru.yandex.practicum.collector.sensor.controller;
 
 import com.google.protobuf.Empty;
+import com.google.protobuf.TextFormat;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -36,7 +37,8 @@ public class SensorEventControllerGrpc {
      * @param responseObserver  Ответ для клиента - Empty
      */
     public void collectSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
-        log.info("Пришли данные сенсора в формате Proto: {}", request);
+        log.info("Пришли данные сенсора в формате protobuff: {}",
+                TextFormat.printer().escapingNonAscii(false).printToString(request));
         SensorEventProto.PayloadCase sensorType = request.getPayloadCase();
 
         try {
