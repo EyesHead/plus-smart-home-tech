@@ -75,7 +75,7 @@ public class SnapshotProcessor {
             if (!deviceActions.isEmpty()) {
                 log.info("Было создано {} действий, отправляем их по gRPC", deviceActions.size());
                 deviceActions.forEach(deviceAction -> {
-                    log.debug("➡️ Отправка DeviceAction: {}", deviceAction);
+                    log.debug("Отправка DeviceAction: {}", deviceAction);
                     actionProducer.handleDeviceAction(deviceAction);
                 });
             } else {

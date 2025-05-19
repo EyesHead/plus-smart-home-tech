@@ -22,14 +22,13 @@ public class TemperatureConditionHandler implements ConditionHandler {
             default -> throw new IllegalArgumentException("Несуществующий тип показателя для сенсора переключателя: " + condition.getType());
         };
 
-        log.debug("Сравниваем данные датчика температуры (по цельсию) = {} с данными операции условия (по цельсию) = {} по полю TEMPERATURE и оператором {}",
+        log.debug("Данные датчика температуры (по цельсию), данные операции условия (по цельсию), оператор сравнения: {}, {}, {}",
                 sensorTempC, conditionTempC, condition.getOperation());
 
-
         return switch (condition.getOperation()) {
-            case ConditionOperationAvro.GREATER_THAN -> sensorTempC > conditionTempC;
-            case ConditionOperationAvro.LOWER_THAN -> sensorTempC < conditionTempC;
-            case ConditionOperationAvro.EQUALS -> sensorTempC == conditionTempC;
+            case ConditionOperationAvro.GREATER_THAN -> conditionTempC > sensorTempC;
+            case ConditionOperationAvro.LOWER_THAN -> conditionTempC < sensorTempC;
+            case ConditionOperationAvro.EQUALS -> conditionTempC == sensorTempC;
         };
     }
 

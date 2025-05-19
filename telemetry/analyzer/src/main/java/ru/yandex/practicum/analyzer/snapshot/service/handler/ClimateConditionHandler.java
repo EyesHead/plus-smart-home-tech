@@ -28,12 +28,12 @@ public class ClimateConditionHandler implements ConditionHandler {
             throw new IllegalArgumentException("Значение поля value для condition датчика климата не может быть null");
         }
 
-        log.debug("Сравниваем данные датчика климата = {} с данными операции условия = {} по полю {} и оператором {}",
-                sensorValue, conditionValue, condition.getValue(), condition.getOperation());
+        log.debug("Данные датчика климата, данные для удовлетворения условию, оператор: {}, {}, {}",
+                sensorValue, conditionValue, condition.getOperation());
         return switch (condition.getOperation()) {
-            case ConditionOperationAvro.GREATER_THAN -> sensorValue > conditionValue;
-            case ConditionOperationAvro.LOWER_THAN -> sensorValue < conditionValue;
-            case ConditionOperationAvro.EQUALS -> sensorValue == conditionValue;
+            case ConditionOperationAvro.GREATER_THAN -> conditionValue > sensorValue;
+            case ConditionOperationAvro.LOWER_THAN -> conditionValue < sensorValue;
+            case ConditionOperationAvro.EQUALS -> conditionValue == sensorValue;
         };
     }
 
