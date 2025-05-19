@@ -60,12 +60,9 @@ public class SnapshotRequestService {
     private boolean checkIfScenarioTriggered(Scenario scenario,
                                              SensorsSnapshotAvro snapshot,
                                              Map<String, SensorStateAvro> sensorsMap) {
-        if (!sensorsMap.containsKey(scenario.getHubId())) {
-            log.debug("Нет состояния для хаб-устройства {}", scenario.getHubId());
-            return false;
-        }
-
-        return scenario.getConditions().entrySet().stream()
+        return scenario.getConditions()
+                .entrySet()
+                .stream()
                 .allMatch(entry -> checkCondition(entry, snapshot, sensorsMap));
     }
 
@@ -76,13 +73,13 @@ public class SnapshotRequestService {
         SensorStateAvro sensor = sensorsMap.get(sensorId);
 
         if (sensor == null) {
-            log.debug("Sensor {} not found for hub {}", sensorId, snapshot.getHubId());
+            log.trace("Сенсор {} не найден в хабе {}", sensorId, snapshot.getHubId());
             return false;
         }
 
         SensorStateAvro state = snapshot.getSensorsState().get(sensorId);
         if (state == null) {
-            log.debug("State not found for sensor {}", sensorId);
+            log.trace("У сенсора {} отсутствует state", sensorId);
             return false;
         }
 
