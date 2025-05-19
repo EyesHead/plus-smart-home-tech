@@ -23,8 +23,8 @@ public class SwitchConditionHandler implements ConditionHandler {
 
         boolean conditionValue = condition.getValue().equals(1);
 
-        log.debug("Сравниваем данные датчика переключателя = {} с данными операции условия = {} по полю SWITCH и оператором {}",
-                sensorValue, conditionValue, condition.getOperation());
+        log.debug("Данные датчика переключателя EQUALS данные для удовлетворения условию? : {}, {}",
+                sensorValue, conditionValue);
 
         if (condition.getOperation().equals(ConditionOperationAvro.EQUALS)) {
             return sensorValue == conditionValue;

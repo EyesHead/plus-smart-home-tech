@@ -73,13 +73,13 @@ public class SnapshotRequestService {
         SensorStateAvro sensor = sensorsMap.get(sensorId);
 
         if (sensor == null) {
-            log.trace("Сенсор {} не найден в хабе {}", sensorId, snapshot.getHubId());
+            log.error("Сенсор {} не найден в хабе {}", sensorId, snapshot.getHubId());
             return false;
         }
 
         SensorStateAvro state = snapshot.getSensorsState().get(sensorId);
         if (state == null) {
-            log.trace("У сенсора {} отсутствует state", sensorId);
+            log.error("У сенсора {} отсутствует state", sensorId);
             return false;
         }
 
