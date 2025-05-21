@@ -34,7 +34,7 @@ public class SnapshotRequestService {
 
     public List<DeviceActionRequest> prepareDeviceActions(SensorsSnapshotAvro sensorsSnapshot) {
         String hubId = sensorsSnapshot.getHubId();
-        log.debug("Начало обработки снапшота с hubId = {}", hubId);
+        log.debug("Начало обработки снапшота: {}", sensorsSnapshot);
 
         List<Scenario> scenarios = scenarioRepository.findByHubId(hubId);
         if (scenarios.isEmpty()) {
@@ -98,8 +98,7 @@ public class SnapshotRequestService {
                         scenario.getName(),
                         entry.getKey(),
                         entry.getValue()
-                ))
-                .filter(Objects::nonNull);
+                ));
     }
 
     private DeviceActionRequest createDeviceActionRequest(String hubId,
@@ -123,7 +122,7 @@ public class SnapshotRequestService {
         return DeviceActionRequest.newBuilder()
                 .setHubId(hubId)
                 .setScenarioName(scenarioName)
-                .setAction(actionBuilder)
+                .setAction(actionBuilder.build())
                 .setTimestamp(TimestampMapper.mapToProto(timestamp))
                 .build();
     }

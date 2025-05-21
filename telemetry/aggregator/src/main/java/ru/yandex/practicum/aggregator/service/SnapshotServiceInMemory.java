@@ -24,25 +24,28 @@ public class SnapshotServiceInMemory implements SnapshotService {
         Optional<SensorsSnapshotAvro> snapshotOpt = snapshotRepository.getById(event.getHubId());
 
         if (snapshotOpt.isEmpty()) {
-            return createNewSnapshot(event);
+            Optional<SensorsSnapshotAvro> newSnapshot = createNewSnapshot(event);
+            log.info("Снапшота с hubId = {} ещё нет. Создаем новый snapshot с одним показанием сенсора:\n{}",
+                    event.getHubId(), newSnapshot);
+            return newSnapshot;
         }
 
         SensorsSnapshotAvro snapshot = snapshotOpt.get();
         SensorStateAvro oldState = snapshot.getSensorsState().get(event.getId());
         // Если событие добавлялось ранее в snapshot
         if (oldState != null) {
-            log.debug("У снапшота есть данные об этом сенсоре: {} \n Новое полученное состояние сенсора: {}", oldState, event.getPayload());
+            log.debug("Старое/новое состояние сенсора '{}' :\n{}\n{}", event.getId(), oldState.getData(), event.getPayload());
             boolean isEventOutdated = oldState.getTimestamp().isAfter(event.getTimestamp());
             boolean isDataSame = SensorDataComparator.isEqual(oldState.getData(), event.getPayload());
             if (isEventOutdated || isDataSame) {
-                log.info("Данные неактуальны. Возврат Optional.empty()");
+                log.warn("Новые полученные данные неактуальны. Возврат Optional.empty()");
                 return Optional.empty();
             } else {
                 // Удаляем старые показания сенсора, т.к. далее мы их обновим
                 snapshot.getSensorsState().remove(event.getId());
             }
         }
-        log.info("Были получены новые данные для snapshot с hubId = {}. Обновляем показания сенсора с id = {}",
+        log.info("Был получены новые данные сенсора для snapshot с hubId = {}. Обновляем показания сенсора с id = {}",
                 snapshot.getHubId(), event.getId());
         // Получены новые данные. Обновляем показания счетчиков в snapshot
         return updateSnapshotWithEventData(snapshot, event);

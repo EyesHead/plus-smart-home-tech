@@ -83,7 +83,6 @@ public class AggregationStarter {
             SensorEventAvro recordData = record.value();
             log.info("Начинаю обработку сообщения: {}", recordData);
             Optional<SensorsSnapshotAvro> snapshotOpt = service.updateState(recordData);
-
             snapshotOpt.ifPresent(this::sendSnapshot);
         }
     }
@@ -91,7 +90,7 @@ public class AggregationStarter {
     private void sendSnapshot(SensorsSnapshotAvro snapshot) {
         try {
             String topicName = producerConfig.getTopic();
-            log.info("Отправка снапшота после обработки: {} в топик {}", snapshot, topicName);
+            log.info("Отправка снапшота после обработки в топик {}", topicName);
 
             ProducerRecord<Void, SensorsSnapshotAvro> record = new ProducerRecord<>(topicName, snapshot);
 
