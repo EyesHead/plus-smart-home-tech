@@ -1,4 +1,4 @@
-package ru.yandex.practicum.analyzer.event;
+package ru.yandex.practicum.analyzer.event.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
