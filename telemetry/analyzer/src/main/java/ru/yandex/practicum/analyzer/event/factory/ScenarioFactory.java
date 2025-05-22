@@ -42,11 +42,11 @@ public class ScenarioFactory {
 
         // Сбор всех идентификаторов сенсоров
         Set<String> sensorIds = collectAllSensorIds(scenarioAvro);
-        log.debug("Собраны идентификаторы сенсоров: {}", sensorIds);
+        log.debug("Собраны идентификаторы сенсоров из scenarioAvro запроса: {}", sensorIds);
 
         // Получение всех сенсоров сразу одним запросом
         Map<String, Sensor> sensors = loadSensors(sensorIds);
-        log.debug("Получены сенсоры: {}", sensors.keySet());
+        log.debug("Получены сенсоры из базы данных: {}", sensors.keySet());
 
         // Создание и добавление условий
         Scenario scenarioWithConditions = addConditionsToScenario(scenario, scenarioAvro, sensors);
@@ -81,7 +81,7 @@ public class ScenarioFactory {
                         conditionAvro.getSensorId());
             }
             Condition condition = conditionService.save(conditionAvro);
-            log.debug("Condition сохранён в БД: {}", condition);
+            log.debug("Condition сохранён в БД {}", condition);
             scenario.getConditions().put(sensor.getId(), condition);
         });
         return scenario;

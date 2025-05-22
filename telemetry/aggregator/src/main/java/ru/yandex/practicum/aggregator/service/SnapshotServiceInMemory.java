@@ -34,7 +34,7 @@ public class SnapshotServiceInMemory implements SnapshotService {
         SensorStateAvro oldState = snapshot.getSensorsState().get(event.getId());
         // Если событие добавлялось ранее в snapshot
         if (oldState != null) {
-            log.debug("Старое/новое состояние сенсора '{}' :\n{}\n{}", event.getId(), oldState.getData(), event.getPayload());
+            log.debug("Были получены новые данные на существующий сенсор с id = {}. Старое/новое состояние сенсора :\n{}\n{}", event.getId(), oldState.getData(), event.getPayload());
             boolean isEventOutdated = oldState.getTimestamp().isAfter(event.getTimestamp());
             boolean isDataSame = SensorDataComparator.isEqual(oldState.getData(), event.getPayload());
             if (isEventOutdated || isDataSame) {
@@ -45,7 +45,7 @@ public class SnapshotServiceInMemory implements SnapshotService {
                 snapshot.getSensorsState().remove(event.getId());
             }
         }
-        log.info("Был получены новые данные сенсора для snapshot с hubId = {}. Обновляем показания сенсора с id = {}",
+        log.info("Были получены данные нового сенсора для snapshot с hubId = {}. Обновляем показания сенсора с id = {}",
                 snapshot.getHubId(), event.getId());
         // Получены новые данные. Обновляем показания счетчиков в snapshot
         return updateSnapshotWithEventData(snapshot, event);

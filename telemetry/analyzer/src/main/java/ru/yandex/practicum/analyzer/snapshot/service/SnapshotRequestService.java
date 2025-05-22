@@ -7,6 +7,7 @@ import ru.yandex.practicum.analyzer.event.model.Action;
 import ru.yandex.practicum.analyzer.event.model.Condition;
 import ru.yandex.practicum.analyzer.event.model.Scenario;
 import ru.yandex.practicum.analyzer.event.repository.ScenarioRepository;
+import ru.yandex.practicum.analyzer.snapshot.service.handler.ConditionHandler;
 import ru.yandex.practicum.analyzer.snapshot.service.handler.ConditionHandlerFactory;
 import ru.yandex.practicum.avro.mapper.SnapshotMapper;
 import ru.yandex.practicum.avro.mapper.TimestampMapper;
@@ -14,14 +15,12 @@ import ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionRequest;
 import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
+import ru.yandex.practicum.kafka.telemetry.event.DeviceTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,9 +31,9 @@ public class SnapshotRequestService {
     private final ScenarioRepository scenarioRepository;
     private final ConditionHandlerFactory conditionHandlerFactory;
 
-    public List<DeviceActionRequest> prepareDeviceActions(SensorsSnapshotAvro sensorsSnapshot) {
-        String hubId = sensorsSnapshot.getHubId();
-        log.debug("Начало обработки снапшота: {}", sensorsSnapshot);
+    public List<DeviceActionRequest> prepareDeviceActions(SensorsSnapshotAvro snapshot) {
+        String hubId = snapshot.getHubId();
+        log.debug("Получен снапшот от хаба {} :\n{}", snapshot.getHubId(), snapshot);
 
         List<Scenario> scenarios = scenarioRepository.findByHubId(hubId);
         if (scenarios.isEmpty()) {
@@ -42,62 +41,70 @@ public class SnapshotRequestService {
             return Collections.emptyList();
         }
 
-        Map<String, SensorStateAvro> sensorsMap = sensorsSnapshot.getSensorsState();
+        log.debug("Найдено {} сценариев для хаба {}", scenarios.size(), hubId);
+        scenarios.forEach(s -> log.debug("→ Сценарий: name={}, conditions={}, actions={}",
+                s.getName(), s.getConditions().values(), s.getActions().values()));
 
         return scenarios.stream()
                 .filter(scenario -> {
-                    boolean isScenarioTriggered = checkIfScenarioTriggered(scenario, sensorsSnapshot, sensorsMap);
+                    boolean isScenarioTriggered = checkIfScenarioTriggered(scenario, snapshot);
                     if (!isScenarioTriggered) {
-                        log.debug("Сценарий {} не удовлетворяет условиям", scenario.getName());
+                        log.debug("Показания снапшота НЕ удовлетворяют условиям активации сценария '{}'", scenario.getName());
+                    } else {
+                        log.debug("Показания снапшота УДОВЛЕТВОРЯЮТ условиям активации сценария '{}'", scenario.getName());
                     }
                     return isScenarioTriggered;
                 })
-                .flatMap(scenario -> mapScenarioToDeviceActions(scenario, sensorsSnapshot, sensorsMap))
+                .flatMap(scenario -> toDeviceActionsFromScenario(scenario, snapshot))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private boolean checkIfScenarioTriggered(Scenario scenario,
-                                             SensorsSnapshotAvro snapshot,
-                                             Map<String, SensorStateAvro> sensorsMap) {
-        return scenario.getConditions()
+    private boolean checkIfScenarioTriggered(Scenario scenario, SensorsSnapshotAvro snapshot) {
+        Set<String> snapshotSensorIds = snapshot.getSensorsState().keySet();
+        Set<String> conditionSensorIds = scenario.getConditions().keySet();
+
+        if (!snapshotSensorIds.equals(conditionSensorIds)) {
+            log.warn("Id сенсоров в снапшоте не совпадают с id сенсоров в условиях сценария '{}'. Снапшот: {}, сценарий: {}",
+                    scenario.getName(), snapshotSensorIds, conditionSensorIds);
+            return false;
+        }
+
+        return scenario.getConditions().entrySet().stream()
+                .allMatch(entry -> checkCondition(entry, snapshot));
+    }
+
+
+    private boolean checkCondition(Map.Entry<String, Condition> conditionEntry, SensorsSnapshotAvro snapshot) {
+        String sensorId = conditionEntry.getKey();
+        Condition condition = conditionEntry.getValue();
+        SensorStateAvro state = snapshot.getSensorsState().get(sensorId);
+
+        log.debug("Проверка условия для сенсора '{}': условие={}, показание={}", sensorId, condition, state.getData());
+
+        DeviceTypeAvro deviceType = SnapshotMapper.mapSnapshotToSensorType(state.getData());
+        ConditionHandler handler = conditionHandlerFactory.getHandler(deviceType);
+
+        log.debug("→ Обработчик для сенсора '{}': тип устройства = {}, handler = {}",
+                sensorId, deviceType, handler.getClass().getSimpleName());
+
+        boolean result = handler.isTriggered(condition, state);
+
+        log.debug("→ Результат проверки: {}", result ? "ПРОЙДЕНО" : "НЕ ПРОЙДЕНО");
+        return result;
+    }
+
+    private Stream<DeviceActionRequest> toDeviceActionsFromScenario(Scenario scenario,
+                                                                    SensorsSnapshotAvro snapshot) {
+        return scenario.getActions()
                 .entrySet()
                 .stream()
-                .allMatch(entry -> checkCondition(entry, snapshot, sensorsMap));
-    }
-
-    private boolean checkCondition(Map.Entry<String, Condition> conditionEntry,
-                                   SensorsSnapshotAvro snapshot,
-                                   Map<String, SensorStateAvro> sensorsMap) {
-        String sensorId = conditionEntry.getKey();
-        SensorStateAvro sensor = sensorsMap.get(sensorId);
-
-        if (sensor == null) {
-            log.error("Сенсор {} не найден в хабе {}", sensorId, snapshot.getHubId());
-            return false;
-        }
-
-        SensorStateAvro state = snapshot.getSensorsState().get(sensorId);
-        if (state == null) {
-            log.error("У сенсора {} отсутствует state", sensorId);
-            return false;
-        }
-
-        return conditionHandlerFactory.getHandler(SnapshotMapper.mapSnapshotToSensorType(state.getData()))
-                .isTriggered(conditionEntry.getValue(), state);
-    }
-
-    private Stream<DeviceActionRequest> mapScenarioToDeviceActions(Scenario scenario,
-                                                                   SensorsSnapshotAvro snapshot,
-                                                                   Map<String, SensorStateAvro> sensorsMap) {
-        return scenario.getActions().entrySet().stream()
-                .filter(entry -> sensorsMap.containsKey(entry.getKey()))
-                .map(entry -> createDeviceActionRequest(
+                .map(sensorIdActionEntry -> createDeviceActionRequest(
                         snapshot.getHubId(),
                         snapshot.getTimestamp(),
                         scenario.getName(),
-                        entry.getKey(),
-                        entry.getValue()
+                        sensorIdActionEntry.getKey(),
+                        sensorIdActionEntry.getValue()
                 ));
     }
 
@@ -106,10 +113,7 @@ public class SnapshotRequestService {
                                                           String scenarioName,
                                                           String sensorId,
                                                           Action action) {
-        if (action.getType() == ActionTypeAvro.SET_VALUE && action.getValue() == null) {
-            log.warn("Действие SET_VALUE требует значение для сенсора {} в сценарии {}, пропускаю...", sensorId, scenarioName);
-            return null;
-        }
+        if (!isValidAction(action, sensorId, scenarioName)) return null;
 
         DeviceActionProto.Builder actionBuilder = DeviceActionProto.newBuilder()
                 .setSensorId(sensorId)
@@ -125,6 +129,14 @@ public class SnapshotRequestService {
                 .setAction(actionBuilder.build())
                 .setTimestamp(TimestampMapper.mapToProto(timestamp))
                 .build();
+    }
+
+    private boolean isValidAction(Action action, String sensorId, String scenarioName) {
+        if (action.getType() == ActionTypeAvro.SET_VALUE && action.getValue() == null) {
+            log.warn("Действие SET_VALUE требует значение для сенсора {} в сценарии '{}', пропускаю...", sensorId, scenarioName);
+            return false;
+        }
+        return true;
     }
 
     private ActionTypeProto mapActionType(ActionTypeAvro actionType) {

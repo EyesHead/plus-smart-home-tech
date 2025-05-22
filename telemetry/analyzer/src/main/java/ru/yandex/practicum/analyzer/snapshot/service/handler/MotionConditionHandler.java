@@ -26,9 +26,6 @@ public class MotionConditionHandler implements ConditionHandler {
             default -> throw new IllegalStateException("Невозможное значение поля value у condition для датчика движения: " + condition.getValue());
         };
 
-        log.debug("Данные датчика движения, данные для удовлетворения условию, оператор EQUALS: {}, {}",
-                sensorValue, conditionValue);
-
         return switch (condition.getOperation()) {
             case ConditionOperationAvro.EQUALS -> sensorValue == conditionValue;
             default -> throw new IllegalArgumentException("Несуществующая операция сравнения для датчика движения: " + condition.getType());

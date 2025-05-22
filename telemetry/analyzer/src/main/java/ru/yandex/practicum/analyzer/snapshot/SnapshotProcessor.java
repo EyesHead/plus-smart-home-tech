@@ -29,12 +29,12 @@ import java.util.List;
  * <p><b>Поток обработки:</b></p>
  *
  * <pre>
- *     Kafka Topic             SnapshotProcessor             SnapshotRequestService          GrpcActionProducerService
- *  ------------------     -------------------------     ----------------------------     -------------------------------
- *  | SensorsSnapshot | --> | poll() каждые 0.5 сек   | --> | prepareDeviceActions()  | --> | gRPC: handleDeviceAction()  |
- *  ------------------     -------------------------     ----------------------------     -------------------------------
- *                                                 \                                          /
- *                                               Если есть действия → отправка через gRPC
+ *     Kafka Topic               SnapshotProcessor         SnapshotRequestService         GrpcActionProducerService
+ *  ---------------------     -----------------------     -------------------------     ----------------------------
+ *  |SensorsSnapshotAvro| --> |poll() каждые 0.5 сек| --> | prepareDeviceActions()| --> |gRPC: handleDeviceAction()|
+ *  ---------------------     -----------------------     -------------------------     ----------------------------
+ *                                                                \                             /
+ *                                                           Если есть действия → отправка через gRPC
  * </pre>
  *
  * <p><b>Описание ключевых шагов:</b></p>
