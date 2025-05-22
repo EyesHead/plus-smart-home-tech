@@ -22,13 +22,10 @@ public class LightConditionHandler implements ConditionHandler {
 
         int conditionValue = luminosityData.getLuminosity();
 
-        log.debug("Данные датчика света, данные для удовлетворения условию, оператор: {}, {}, {}",
-                sensorValue, conditionValue, condition.getOperation());
-
         return switch (condition.getOperation()) {
-            case ConditionOperationAvro.GREATER_THAN -> conditionValue > sensorValue;
-            case ConditionOperationAvro.LOWER_THAN -> conditionValue < sensorValue;
-            case ConditionOperationAvro.EQUALS -> conditionValue == sensorValue;
+            case ConditionOperationAvro.GREATER_THAN -> sensorValue > conditionValue;
+            case ConditionOperationAvro.LOWER_THAN -> sensorValue < conditionValue;
+            case ConditionOperationAvro.EQUALS -> sensorValue == conditionValue;
         };
     }
 

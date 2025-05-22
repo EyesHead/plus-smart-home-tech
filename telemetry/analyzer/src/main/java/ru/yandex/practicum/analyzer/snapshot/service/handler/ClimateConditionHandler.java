@@ -13,7 +13,6 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 public class ClimateConditionHandler implements ConditionHandler {
     @Override
     public boolean isTriggered(Condition condition, SensorStateAvro sensorData) {
-
         ClimateSensorAvro climateData = (ClimateSensorAvro) sensorData.getData();
 
         int sensorValue = switch (condition.getType()) {
@@ -28,12 +27,10 @@ public class ClimateConditionHandler implements ConditionHandler {
             throw new IllegalArgumentException("Значение поля value для condition датчика климата не может быть null");
         }
 
-        log.debug("Данные датчика климата, данные для удовлетворения условию, оператор: {}, {}, {}",
-                sensorValue, conditionValue, condition.getOperation());
         return switch (condition.getOperation()) {
-            case ConditionOperationAvro.GREATER_THAN -> conditionValue > sensorValue;
-            case ConditionOperationAvro.LOWER_THAN -> conditionValue < sensorValue;
-            case ConditionOperationAvro.EQUALS -> conditionValue == sensorValue;
+            case ConditionOperationAvro.GREATER_THAN -> sensorValue > conditionValue;
+            case ConditionOperationAvro.LOWER_THAN -> sensorValue < conditionValue;
+            case ConditionOperationAvro.EQUALS -> sensorValue == conditionValue;
         };
     }
 
