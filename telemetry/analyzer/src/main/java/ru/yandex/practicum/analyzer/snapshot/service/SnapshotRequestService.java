@@ -36,23 +36,19 @@ public class SnapshotRequestService {
         log.debug("Получен снапшот от хаба {} :\n{}", snapshot.getHubId(), snapshot);
 
         List<Scenario> scenarios = scenarioRepository.findByHubId(hubId);
+        
         if (scenarios.isEmpty()) {
             log.warn("Не найдено сценариев для хаба с id = {}. События для девайсов не будут созданы", hubId);
             return Collections.emptyList();
         }
 
         log.debug("Найдено {} сценариев для хаба {}", scenarios.size(), hubId);
-        scenarios.forEach(s -> log.debug("→ Сценарий: name={}, conditions={}, actions={}",
-                s.getName(), s.getConditions().values(), s.getActions().values()));
+        scenarios.forEach(this::logScenarioDetails);
 
         return scenarios.stream()
                 .filter(scenario -> {
                     boolean isScenarioTriggered = checkIfScenarioTriggered(scenario, snapshot);
-                    if (!isScenarioTriggered) {
-                        log.debug("Показания снапшота НЕ удовлетворяют условиям активации сценария '{}'", scenario.getName());
-                    } else {
-                        log.debug("Показания снапшота УДОВЛЕТВОРЯЮТ условиям активации сценария '{}'", scenario.getName());
-                    }
+                    log.debug("Условия активации сценария выполнены? {}", isScenarioTriggered);
                     return isScenarioTriggered;
                 })
                 .flatMap(scenario -> toDeviceActionsFromScenario(scenario, snapshot))
@@ -61,19 +57,20 @@ public class SnapshotRequestService {
     }
 
     private boolean checkIfScenarioTriggered(Scenario scenario, SensorsSnapshotAvro snapshot) {
-        Set<String> snapshotSensorIds = snapshot.getSensorsState().keySet();
-        Set<String> conditionSensorIds = scenario.getConditions().keySet();
+        Map<String, Condition> conditions = scenario.getConditions();
+        Map<String, SensorStateAvro> sensorStates = snapshot.getSensorsState();
 
-        if (!snapshotSensorIds.equals(conditionSensorIds)) {
-            log.warn("Id сенсоров в снапшоте не совпадают с id сенсоров в условиях сценария '{}'. Снапшот: {}, сценарий: {}",
-                    scenario.getName(), snapshotSensorIds, conditionSensorIds);
+        if (!sensorStates.keySet().containsAll(conditions.keySet())) {
+            Set<String> missingSensors = new HashSet<>(conditions.keySet());
+            missingSensors.removeAll(sensorStates.keySet());
+            log.debug("Сценарий '{}' не активирован — в снапшоте отсутствуют сенсоры: {}", scenario.getName(), missingSensors);
             return false;
         }
 
-        return scenario.getConditions().entrySet().stream()
+        return conditions.entrySet()
+                .stream()
                 .allMatch(entry -> checkCondition(entry, snapshot));
     }
-
 
     private boolean checkCondition(Map.Entry<String, Condition> conditionEntry, SensorsSnapshotAvro snapshot) {
         String sensorId = conditionEntry.getKey();
@@ -141,5 +138,27 @@ public class SnapshotRequestService {
 
     private ActionTypeProto mapActionType(ActionTypeAvro actionType) {
         return ActionTypeProto.valueOf(actionType.name());
+    }
+
+    private void logScenarioDetails(Scenario scenario) {
+        log.debug("→ Сценарий: id={}, name='{}', hubId='{}'", scenario.getId(), scenario.getName(), scenario.getHubId());
+
+        if (scenario.getConditions() == null || scenario.getConditions().isEmpty()) {
+            log.debug("   Условия: отсутствуют");
+        } else {
+            log.debug("   Условия:");
+            scenario.getConditions().forEach((sensorId, condition) ->
+                    log.debug("     • sensorId='{}' → {}", sensorId, condition)
+            );
+        }
+
+        if (scenario.getActions() == null || scenario.getActions().isEmpty()) {
+            log.debug("   Действия: отсутствуют");
+        } else {
+            log.debug("   Действия:");
+            scenario.getActions().forEach((sensorId, action) ->
+                    log.debug("     • sensorId='{}' → {}", sensorId, action)
+            );
+        }
     }
 }
