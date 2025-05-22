@@ -54,8 +54,8 @@ public class SnapshotServiceInMemory implements SnapshotService {
     private Optional<SensorsSnapshotAvro> updateSnapshotWithEventData(SensorsSnapshotAvro snapshot, SensorEventAvro event) {
         Map<String, SensorStateAvro> newStates = new HashMap<>(snapshot.getSensorsState());
         newStates.put(event.getId(), SnapshotMapper.mapToState(event));
+
         SensorsSnapshotAvro newSnapshot = SensorsSnapshotAvro.newBuilder(snapshot)
-                .setHubId(event.getHubId())
                 .setSensorsState(newStates)
                 .setTimestamp(event.getTimestamp())
                 .build();
