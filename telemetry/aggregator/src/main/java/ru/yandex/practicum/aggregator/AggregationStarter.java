@@ -90,7 +90,7 @@ public class AggregationStarter {
     private void sendSnapshot(SensorsSnapshotAvro snapshot) {
         try {
             String topicName = producerConfig.getTopic();
-            log.info("Отправка снапшота после обработки в топик {}", topicName);
+            log.info("Отправка снапшота после обработки в топик {}:\n{}", topicName, snapshot);
 
             ProducerRecord<Void, SensorsSnapshotAvro> record = new ProducerRecord<>(topicName, snapshot);
 
