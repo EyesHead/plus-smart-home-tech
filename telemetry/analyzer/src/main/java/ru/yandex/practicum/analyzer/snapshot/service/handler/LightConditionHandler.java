@@ -15,12 +15,15 @@ public class LightConditionHandler implements ConditionHandler {
     public boolean isTriggered(Condition condition, SensorStateAvro sensorData) {
         LightSensorAvro luminosityData = (LightSensorAvro) sensorData.getData();
 
-        int sensorValue = switch (condition.getType()) {
-            case LUMINOSITY -> luminosityData.getLuminosity();
-            default -> throw new IllegalArgumentException("Несуществующий тип показателя для сенсора света: " + condition.getType());
-        };
+        int sensorValue = luminosityData.getLuminosity();
+        Integer conditionValue = condition.getValue();
 
-        int conditionValue = luminosityData.getLuminosity();
+        if (conditionValue == null) {
+            throw new IllegalArgumentException("Для условия LUMINOSITY значение не может быть null");
+        }
+
+        log.debug("Проверка LUMINOSITY: показание = {}, ожидаемое значение = {}, операция = {}",
+                sensorValue, conditionValue, condition.getOperation());
 
         return switch (condition.getOperation()) {
             case ConditionOperationAvro.GREATER_THAN -> sensorValue > conditionValue;

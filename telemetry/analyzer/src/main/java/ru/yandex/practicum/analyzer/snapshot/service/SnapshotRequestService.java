@@ -63,8 +63,12 @@ public class SnapshotRequestService {
         if (!sensorStates.keySet().containsAll(conditions.keySet())) {
             Set<String> missingSensors = new HashSet<>(conditions.keySet());
             missingSensors.removeAll(sensorStates.keySet());
-            log.debug("Сценарий '{}' не активирован — в снапшоте отсутствуют сенсоры: {}", scenario.getName(), missingSensors);
+            log.debug("В условиях сценария '{}' есть сенсоры, которые отсутствуют в снапшоте: {}",
+                    scenario.getName(), missingSensors);
             return false;
+        } else {
+            log.debug("В снапшоте найдены те же сенсоры, что и в условиях сценария '{}'. Запускаем проверку на выполнение условий",
+                    scenario.getName());
         }
 
         return conditions.entrySet()

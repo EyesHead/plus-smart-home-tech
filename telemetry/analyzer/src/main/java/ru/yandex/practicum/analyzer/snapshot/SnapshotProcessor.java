@@ -131,7 +131,7 @@ public class SnapshotProcessor {
             if (!deviceActions.isEmpty()) {
                 log.info("В процессе работы сервиса было создано {} событий, отправляем их по gRPC", deviceActions.size());
                 deviceActions.forEach(deviceAction -> {
-                    log.debug("Отправка DeviceAction в hub-router: {}", deviceAction);
+                    log.debug("Отправка DeviceAction в hub-router:\n{}", deviceAction);
                     grpcActionService.handleDeviceAction(deviceAction);
                 });
             } else {
