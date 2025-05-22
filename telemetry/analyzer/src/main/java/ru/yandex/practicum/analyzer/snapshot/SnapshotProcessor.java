@@ -88,6 +88,7 @@ public class SnapshotProcessor {
                 }
 
                 handleRecords(records);
+                log.info("------------------------------------------------------");
             }
         } catch (WakeupException ignored) {
             log.info("⚠WakeupException — остановка по инициативе");
@@ -136,7 +137,6 @@ public class SnapshotProcessor {
             } else {
                 log.info("Никакие сценарии не сработали — действий нет");
             }
-            log.info("------------------------------------------------------");
         }
     }
 
