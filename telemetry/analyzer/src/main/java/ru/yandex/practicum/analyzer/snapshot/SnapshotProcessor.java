@@ -79,16 +79,13 @@ public class SnapshotProcessor {
         try {
             while (true) {
                 log.trace("poll() ожидает новые сообщения...");
-                ConsumerRecords<Void, SensorsSnapshotAvro> records = consumer.poll(Duration.ofMillis(500));
+                ConsumerRecords<Void, SensorsSnapshotAvro> records = consumer.poll(Duration.ofMillis(100));
 
-                if (records.isEmpty()) {
-                    log.trace("poll() не получил сообщений");
-                } else {
+                if (!records.isEmpty()) {
                     log.info("poll() получил {} сообщений", records.count());
+                    handleRecords(records);
+                    log.info("------------------------------------------------------");
                 }
-
-                handleRecords(records);
-                log.info("------------------------------------------------------");
             }
         } catch (WakeupException ignored) {
             log.info("⚠WakeupException — остановка по инициативе");
@@ -137,6 +134,7 @@ public class SnapshotProcessor {
             } else {
                 log.info("Никакие сценарии не сработали — действий нет");
             }
+            consumer.commitSync();
         }
     }
 

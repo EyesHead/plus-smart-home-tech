@@ -1,15 +1,14 @@
 package ru.yandex.practicum.analyzer.event.factory;
 
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.analyzer.event.model.Condition;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
 
 @Component
-@NoArgsConstructor
 @Slf4j
-public class ConditionFactory {
+public class ConditionFactory implements ScenarioComponentFactory<Condition, ScenarioConditionAvro> {
+    @Override
     public Condition create(ScenarioConditionAvro conditionAvro) {
         Condition condition = new Condition();
         condition.setType(conditionAvro.getType());
@@ -25,10 +24,8 @@ public class ConditionFactory {
      */
     private Integer convertValue(Object value) {
         if (!(value instanceof Boolean)) {
-            return (Integer) value; // Сохраняем null или int как есть
+            return (Integer) value;
         }
-
-        // Конвертируем bool в 1/0
         return (Boolean) value ? 1 : 0;
     }
 }

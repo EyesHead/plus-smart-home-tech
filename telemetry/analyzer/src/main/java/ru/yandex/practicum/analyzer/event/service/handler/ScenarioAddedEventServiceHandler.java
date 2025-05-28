@@ -4,9 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.analyzer.event.factory.ScenarioFactory;
 import ru.yandex.practicum.analyzer.event.model.Scenario;
-import ru.yandex.practicum.analyzer.event.repository.ScenarioRepository;
+import ru.yandex.practicum.analyzer.event.service.ScenarioService;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro;
 
@@ -14,26 +13,16 @@ import ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro;
 @RequiredArgsConstructor
 @Slf4j
 public class ScenarioAddedEventServiceHandler implements HubEventServiceHandler {
-    private final ScenarioRepository scenarioRepository;
-    private final ScenarioFactory scenarioFactory;
+    private final ScenarioService scenarioService;
 
     @Override
     @Transactional
     public void handleEvent(HubEventAvro hubEventAvro) {
-        log.debug("Сохранение сценария из данных HubEventAvro в базу данных: {}", hubEventAvro);
+        log.debug("Обработка события добавления сценария: {}", hubEventAvro);
         ScenarioAddedEventAvro scenarioAvro = (ScenarioAddedEventAvro) hubEventAvro.getPayload();
 
-        if (scenarioRepository.existsByHubIdAndName(hubEventAvro.getHubId(), scenarioAvro.getName())) {
-            log.warn("Сценарий с name = {} и hubId = {} уже существует в базе данных и не будет сохранён",
-                    scenarioAvro.getName(), hubEventAvro.getHubId());
-            return;
-        }
-
-        Scenario scenario = scenarioFactory.createScenario(hubEventAvro, scenarioAvro);
-        log.info("HubEventAvro был переведен в Scenario и будет сохранён в БД: {}", scenario);
-
-        Scenario saved = scenarioRepository.save(scenario);
-        log.debug("Сценарий сохранен: {}", saved);
+        Scenario scenario = scenarioService.createScenario(hubEventAvro, scenarioAvro);
+        log.info("Сценарий создан: {}", scenario);
     }
 
     @Override

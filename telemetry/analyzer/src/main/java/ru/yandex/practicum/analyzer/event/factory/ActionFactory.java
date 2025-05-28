@@ -1,14 +1,14 @@
 package ru.yandex.practicum.analyzer.event.factory;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.analyzer.event.model.Action;
 import ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceActionAvro;
 
 @Component
-@RequiredArgsConstructor
-public class ActionFactory {
+@Slf4j
+public class ActionFactory implements ScenarioComponentFactory<Action, DeviceActionAvro> {
     public Action create(DeviceActionAvro actionAvro) {
         validateAction(actionAvro);
 
@@ -20,7 +20,7 @@ public class ActionFactory {
 
     private void validateAction(DeviceActionAvro action) {
         if (action.getType() == ActionTypeAvro.SET_VALUE && action.getValue() == null) {
-            throw new IllegalArgumentException("For Action with SET_VALUE field value is required");
+            throw new IllegalArgumentException("Для действия с полем type == SET_VALUE value должен быть указан ");
         }
     }
 }
