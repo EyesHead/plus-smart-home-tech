@@ -4,102 +4,65 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.analyzer.event.model.Action;
-import ru.yandex.practicum.analyzer.event.model.Condition;
 import ru.yandex.practicum.analyzer.event.model.Scenario;
+import ru.yandex.practicum.analyzer.event.model.ScenarioCreationRequest;
 import ru.yandex.practicum.analyzer.event.model.Sensor;
-import ru.yandex.practicum.analyzer.event.repository.SensorRepository;
-import ru.yandex.practicum.analyzer.event.service.ActionService;
-import ru.yandex.practicum.analyzer.event.service.ConditionService;
+import ru.yandex.practicum.analyzer.event.service.SensorService;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceActionAvro;
-import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
-import ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ScenarioFactory {
-    private final SensorRepository sensorRepository;
-    private final ConditionService conditionService;
-    private final ActionService actionService;
+    private final SensorService sensorService;
+    private final ConditionFactory conditionFactory;
+    private final ActionFactory actionFactory;
 
-    @Transactional
-    public Scenario createScenario(HubEventAvro hubEventAvro, ScenarioAddedEventAvro scenarioAvro) {
+    public Scenario create(ScenarioCreationRequest request) {
+        log.info("Создание сценария '{}' для хаба {}", request.name(), request.hubId());
 
-        log.info("Создание нового сценария с именем '{}' для хаба {}", scenarioAvro.getName(), hubEventAvro.getHubId());
         Scenario scenario = new Scenario();
+        scenario.setHubId(request.hubId());
+        scenario.setName(request.name());
 
-        scenario.setHubId(hubEventAvro.getHubId());
-        scenario.setName(scenarioAvro.getName());
+        Map<String, Sensor> sensors = sensorService.getSensorsByIds(collectSensorIds(request));
 
-        // Сбор всех идентификаторов сенсоров
-        Set<String> sensorIds = collectAllSensorIds(scenarioAvro);
-        log.debug("Собраны идентификаторы сенсоров из scenarioAvro запроса: {}", sensorIds);
+        addConditions(scenario, request, sensors);
+        addActions(scenario, request, sensors);
 
-        // Получение всех сенсоров сразу одним запросом
-        Map<String, Sensor> sensors = loadSensors(sensorIds);
-        log.debug("Получены сенсоры из базы данных: {}", sensors.keySet());
-
-        // Создание и добавление условий
-        Scenario scenarioWithConditions = addConditionsToScenario(scenario, scenarioAvro, sensors);
-        log.debug("Добавлены условия к сценарию: {}", scenarioWithConditions.getConditions());
-
-        // Создание и добавление действий
-        Scenario scenarioFullyUpdated = addActionsToScenario(scenarioWithConditions, scenarioAvro, sensors);
-        log.debug("Добавлены действия к сценарию: {}", scenarioFullyUpdated.getActions());
-
-        return scenarioFullyUpdated;
+        return scenario;
     }
 
-    private Set<String> collectAllSensorIds(ScenarioAddedEventAvro scenarioAvro) {
+    private Set<String> collectSensorIds(ScenarioCreationRequest request) {
         return Stream.concat(
-                scenarioAvro.getConditions().stream().map(ScenarioConditionAvro::getSensorId),
-                scenarioAvro.getActions().stream().map(DeviceActionAvro::getSensorId)
+                request.conditions().stream().map(ScenarioConditionAvro::getSensorId),
+                request.actions().stream().map(DeviceActionAvro::getSensorId)
         ).collect(Collectors.toSet());
     }
 
-    private Map<String, Sensor> loadSensors(Set<String> sensorIds) {
-        return sensorRepository.findAllById(sensorIds).stream()
-                .collect(Collectors.toMap(Sensor::getId, Function.identity()));
-    }
-
-    private Scenario addConditionsToScenario(Scenario scenario,
-                                             ScenarioAddedEventAvro scenarioAvro,
-                                             Map<String, Sensor> sensors) {
-        scenarioAvro.getConditions().forEach(conditionAvro -> {
+    private void addConditions(Scenario scenario, ScenarioCreationRequest request, Map<String, Sensor> sensors) {
+        request.conditions().forEach(conditionAvro -> {
             Sensor sensor = sensors.get(conditionAvro.getSensorId());
             if (sensor == null) {
-                throw new EntityNotFoundException("Sensor не найден в БД. sensorId = " +
-                        conditionAvro.getSensorId());
+                throw new EntityNotFoundException("Sensor не найден в БД. sensorId: " + conditionAvro.getSensorId());
             }
-            Condition condition = conditionService.save(conditionAvro);
-            log.debug("Condition сохранён в БД {}", condition);
-            scenario.getConditions().put(sensor.getId(), condition);
+            scenario.getConditions().put(sensor.getId(), conditionFactory.create(conditionAvro));
         });
-        return scenario;
     }
 
-    private Scenario addActionsToScenario(Scenario scenario,
-                                          ScenarioAddedEventAvro scenarioAvro,
-                                          Map<String, Sensor> sensors) {
-        scenarioAvro.getActions().forEach(actionAvro -> {
+    private void addActions(Scenario scenario, ScenarioCreationRequest request, Map<String, Sensor> sensors) {
+        request.actions().forEach(actionAvro -> {
             Sensor sensor = sensors.get(actionAvro.getSensorId());
             if (sensor == null) {
-                throw new EntityNotFoundException("Sensor не найден в БД. sensorId: " +
-                        actionAvro.getSensorId());
+                throw new EntityNotFoundException("Sensor не найден в БД. sensorId: " + actionAvro.getSensorId());
             }
-            Action action = actionService.save(actionAvro);
-            log.debug("Action был успешно создан и сохранён в БД: {}", action);
-            scenario.getActions().put(actionAvro.getSensorId(), action);
+            scenario.getActions().put(actionAvro.getSensorId(), actionFactory.create(actionAvro));
         });
-        return scenario;
     }
 }

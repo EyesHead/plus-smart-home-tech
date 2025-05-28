@@ -24,6 +24,28 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Сервис обработки снапшота сенсоров, полученного от хаба.
+ *
+ * <p>Основная задача класса — анализировать состояния сенсоров у снапшота, проверять выполнение условий сценариев
+ * и формировать List<{@link DeviceActionRequest}>, который будет отправлен в хаб-систему
+ * для управления устройствами (например, включения света, регулировки температуры и т.д.).</p>
+ *
+ * <p>Работает следующим образом:
+ * <ul>
+ *     <li>Получает {@link SensorsSnapshotAvro} от aggregator</li>
+ *     <li>Извлекает {@link Scenario} для данного хаба из базы данных</li>
+ *     <li>Проверяет, выполняются ли {@link Condition} каждого сценария</li>
+ *     <li>Для сработавших сценариев из {@link Action} создает соответствующие {@link DeviceActionRequest}</li>
+ * </ul>
+ * </p>
+ *
+ * Использует:
+ * <ul>
+ *     <li>{@link ScenarioRepository} — для получения сценариев</li>
+ *     <li>{@link ConditionHandlerFactory} — для выбора обработчика проверки условий в зависимости от типа сенсора/</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -56,6 +78,13 @@ public class SnapshotRequestService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Проверяет, выполняются ли условия сценария на основе данных из снапшота.
+     *
+     * @param scenario Сценарий с набором условий
+     * @param snapshot Снимок состояний сенсоров
+     * @return {@code true} — если все условия сценария выполняются; {@code false} — иначе
+     */
     private boolean checkIfScenarioTriggered(Scenario scenario, SensorsSnapshotAvro snapshot) {
         Map<String, Condition> conditions = scenario.getConditions();
         Map<String, SensorStateAvro> sensorStates = snapshot.getSensorsState();
@@ -76,6 +105,13 @@ public class SnapshotRequestService {
                 .allMatch(entry -> checkCondition(entry, snapshot));
     }
 
+    /**
+     * Проверяет выполнение одного конкретного условия сенсором из snapshot.
+     *
+     * @param conditionEntry Пара "sensorId → условие"
+     * @param snapshot       Снимок сенсоров
+     * @return {@code true} — если условие выполняется, {@code false} — если нет
+     */
     private boolean checkCondition(Map.Entry<String, Condition> conditionEntry, SensorsSnapshotAvro snapshot) {
         String sensorId = conditionEntry.getKey();
         Condition condition = conditionEntry.getValue();
@@ -132,6 +168,13 @@ public class SnapshotRequestService {
                 .build();
     }
 
+    /**
+     * Проверяет, является ли действие допустимым (например, SET_VALUE без значения считается недопустимым).
+     *
+     * @param action        Проверяемое действие
+     * @param sensorId      ID сенсора
+     * @return true — если действие валидно, иначе false
+     */
     private boolean isValidAction(Action action, String sensorId, String scenarioName) {
         if (action.getType() == ActionTypeAvro.SET_VALUE && action.getValue() == null) {
             log.warn("Действие SET_VALUE требует значение для сенсора {} в сценарии '{}', пропускаю...", sensorId, scenarioName);
