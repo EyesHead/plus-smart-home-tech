@@ -1,20 +1,15 @@
-aggregator:
-  kafka-producer:
-    topic: "telemetry.snapshots.v1"
-    properties:
-      "bootstrap.servers": "localhost:9092"
-      "key.serializer": "org.apache.kafka.common.serialization.VoidSerializer"
-      "value.serializer": "ru.yandex.practicum.aggregator.kafka.serializer.AggregatorKafkaSerializer"
+spring:
+  profiles:
+    default: dev
 
-  kafka-consumer:
-    topic: "telemetry.sensors.v1"
-    properties:
-      "bootstrap.servers": "localhost:9092"
-      "group.id": "aggregator-group"
-      "key.deserializer": "org.apache.kafka.common.serialization.VoidDeserializer"
-      "value.deserializer": "ru.yandex.practicum.aggregator.kafka.deserializer.SensorEventDeserializer"
-      "enable.auto.commit": "true"
+  application:
+    name: aggregator
 
-logging:
-  level:
-    ru.yandex.practicum: DEBUG
+  config:
+    import: configserver:http://localhost:8888
+
+  cloud:
+    config:
+      retry:
+        max-interval: 6000
+        max-attempts: 5

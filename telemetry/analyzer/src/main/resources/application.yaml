@@ -1,44 +1,15 @@
-analyzer:
-  hubs-consumer:
-    topic: "telemetry.hubs.v1"
-    properties:
-      "bootstrap.servers": "localhost:9092"
-      "group.id": "hub-events-group"
-      "key.deserializer": "org.apache.kafka.common.serialization.VoidDeserializer"
-      "value.deserializer": "ru.yandex.practicum.analyzer.event.kafka.deserializer.HubEventDeserializer"
-      "enable.auto.commit": "true"
-
-  snapshot-consumer:
-    topic: "telemetry.snapshots.v1"
-    properties:
-      "bootstrap.servers": "localhost:9092"
-      "group.id": "snapshot-group"
-      "key.deserializer": "org.apache.kafka.common.serialization.VoidDeserializer"
-      "value.deserializer": "ru.yandex.practicum.analyzer.snapshot.kafka.deserializer.SnapshotDeserializer"
-      "enable.auto.commit": "true"
-
-grpc:
-  client:
-    hub-router:
-      address: "static://localhost:59090"
-      enableKeepAlive: true
-      keepAliveWithoutCalls: true
-      negotiationType: plaintext
-
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
-  sql:
-    init:
-      mode: always
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
+  profiles:
+    default: dev
 
-logging:
-  level:
-    ru.yandex.practicum: DEBUG
+  application:
+    name: analyzer
+
+  config:
+    import: configserver:http://localhost:8888
+
+  cloud:
+    config:
+      retry:
+        max-interval: 6000
+        max-attempts: 5

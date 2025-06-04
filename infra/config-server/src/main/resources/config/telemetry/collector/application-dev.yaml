@@ -1,0 +1,20 @@
+grpc:
+  server:
+    port: 59091
+
+logging:
+  level:
+    eyeshead.smarthome.collector: DEBUG
+    org:
+      springframework: ERROR
+      apache.kafka: WARN
+
+collector:
+  kafka:
+    producer:
+      hub-topic: "telemetry.hubs.v1"
+      sensor-topic: "telemetry.sensors.v1"
+      properties:
+        "bootstrap.servers": "localhost:9092"
+        "key.serializer": "org.apache.kafka.common.serialization.VoidSerializer"
+        "value.serializer": "eyeshead.smarthome.collector.kafka.serializer.BaseAvroSerializer"
