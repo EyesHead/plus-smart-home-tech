@@ -1,16 +1,15 @@
-grpc:
-  server:
-    port: 59091
+spring:
+  profiles:
+    default: dev
 
-logging:
-  level:
-    ru.yandex.practicum: DEBUG
+  application:
+    name: collector
 
-collector:
-  kafka-producer:
-    "hub-topic": "telemetry.hubs.v1"
-    "sensor-topic": "telemetry.sensors.v1"
-    properties:
-      "bootstrap.servers": "localhost:9092"
-      "key.serializer": "org.apache.kafka.common.serialization.VoidSerializer"
-      "value.serializer": "ru.yandex.practicum.collector.kafka.serializer.BaseAvroSerializer"
+  config:
+    import: configserver:http://localhost:8888
+
+  cloud:
+    config:
+      retry:
+        max-interval: 6000
+        max-attempts: 5

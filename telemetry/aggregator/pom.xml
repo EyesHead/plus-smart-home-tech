@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>ru.yandex.practicum</groupId>
+        <groupId>eyeshead.smarthome</groupId>
         <artifactId>telemetry</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
@@ -10,16 +10,22 @@
     <artifactId>aggregator</artifactId>
 
     <dependencies>
+        <!--> cloud config <!-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+
         <!--> spring-boot <!-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
         <!--> kafka <!-->
@@ -30,7 +36,7 @@
 
         <!-- Общие схемы -->
         <dependency>
-            <groupId>ru.yandex.practicum</groupId>
+            <groupId>eyeshead.smarthome</groupId>
             <artifactId>avro-schemas</artifactId>
             <version>${project.version}</version>
         </dependency>

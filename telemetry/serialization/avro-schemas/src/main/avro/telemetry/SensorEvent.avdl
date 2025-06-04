@@ -1,4 +1,4 @@
-@namespace("ru.yandex.practicum.kafka.telemetry.event")
+@namespace("eyeshead.smarthome.kafka.telemetry.event")
 protocol SensorEventProtocol {
 	record ClimateSensorAvro {
 		int temperature_c;
