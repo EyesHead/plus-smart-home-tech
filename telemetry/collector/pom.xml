@@ -12,6 +12,12 @@
     <artifactId>collector</artifactId>
 
     <dependencies>
+        <!--> Service discovery <!-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-netflix-eureka-client</artifactId>
+        </dependency>
+
         <!--> externalized config <!-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

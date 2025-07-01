@@ -25,10 +25,13 @@ analyzer:
         "key.deserializer": "org.apache.kafka.common.serialization.VoidDeserializer"
         "value.deserializer": "eyeshead.smarthome.analyzer.snapshot.kafka.deserializer.SnapshotDeserializer"
         "enable.auto.commit": "true"
+
 grpc:
+  server:
+    port: 59092
   client:
     hub-router:
-      address: "static://localhost:59090"
+      address: 'discovery:///hub-router'
       enableKeepAlive: true
       keepAliveWithoutCalls: true
       negotiationType: plaintext

@@ -19,7 +19,7 @@ import java.util.Properties;
 public class HubEventConsumerConfig {
     private final Map<String, String> properties;
     private final String topic;
-    private final Duration timeout;
+    private final Duration pollTimeout;
 
     public Properties getProperties() {
         Properties props = new Properties();

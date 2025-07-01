@@ -41,7 +41,7 @@ public class HubEventProcessor implements Runnable {
         log.info("Запуск обработчика событий хаба");
         try {
             while (true) {
-                ConsumerRecords<Void, HubEventAvro> records = consumer.poll(consumerConfig.getTimeout());
+                ConsumerRecords<Void, HubEventAvro> records = consumer.poll(consumerConfig.getPollTimeout());
                 if (!records.isEmpty()) {
                     processRecords(records);
                 }

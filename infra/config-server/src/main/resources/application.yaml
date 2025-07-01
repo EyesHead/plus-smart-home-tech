@@ -6,8 +6,11 @@ spring:
     name: config-server
   profiles:
     active: native
+
   cloud:
     config:
+      discovery:
+        enabled: true
       server:
         native:
           searchLocations:

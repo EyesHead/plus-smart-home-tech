@@ -73,7 +73,7 @@ public class SnapshotProcessor {
         log.info("Обработчик сообщений запущен");
         try {
             while (true) {
-                ConsumerRecords<Void, SensorsSnapshotAvro> records = consumer.poll(consumerConfig.getTimeout());
+                ConsumerRecords<Void, SensorsSnapshotAvro> records = consumer.poll(consumerConfig.getPollTimeout());
 
                 if (!records.isEmpty()) {
                     log.debug("Из топика {} было получено {} сообщений}", consumerConfig.getTopic(), records.count());
