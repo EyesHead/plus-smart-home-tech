@@ -10,14 +10,15 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>ru.yandex.practicum</groupId>
+    <groupId>eyeshead.smarthome</groupId>
     <artifactId>smart-home-tech</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>telemetry</module>
         <module>infra</module>
+        <module>telemetry</module>
+        <module>telemetry/hub-router-test</module>
         <module>commerce</module>
     </modules>
 
@@ -28,8 +29,9 @@
         <kafka-clients.version>3.6.1</kafka-clients.version>
         <springdoc-openapi-starter.version>2.6.0</springdoc-openapi-starter.version>
         <grpc-spring-boot-starter.version>3.1.0.RELEASE</grpc-spring-boot-starter.version>
-        <protobuf.version>3.23.4</protobuf.version>
+        <protobuf.version>3.25.1</protobuf.version>
         <grpc.version>1.63.0</grpc.version>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
 
         <!--       Plugins       -->
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
@@ -65,12 +67,6 @@
             </dependency>
 
             <dependency>
-                <groupId>net.devh</groupId>
-                <artifactId>grpc-server-spring-boot-starter</artifactId>
-                <version>${grpc-spring-boot-starter.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-stub</artifactId>
                 <version>${grpc.version}</version>
@@ -81,8 +77,16 @@
                 <artifactId>grpc-protobuf</artifactId>
                 <version>${grpc.version}</version>
             </dependency>
-
             <!--    / GRPC dependencies management        -->
+
+            <!--    Spring-cloud dependencies      -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -1,0 +1,24 @@
+spring:
+  profiles:
+    default: dev
+
+  application:
+    name: collector
+
+  config:
+    import: "configserver:"
+
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
+      retry:
+        max-interval: 6000
+        max-attempts: 5
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${eureka.instance.hostname:localhost}:${eureka.instance.port:8761}/eureka/
+  instance:
+    prefer-ip-address: true

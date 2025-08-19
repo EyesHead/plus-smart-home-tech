@@ -1,0 +1,51 @@
+logging:
+  level:
+    eyeshead.smarthome.analyzer: DEBUG
+    org:
+      springframework: ERROR
+      apache.kafka: WARN
+
+analyzer:
+  kafka:
+    hub-event-consumer:
+      topic: "telemetry.hubs.v1"
+      poll-timeout: 100ms
+      properties:
+        "bootstrap.servers": "localhost:9092"
+        "group.id": "hub-events-group"
+        "key.deserializer": "org.apache.kafka.common.serialization.VoidDeserializer"
+        "value.deserializer": "eyeshead.smarthome.analyzer.hubevent.kafka.deserializer.HubEventDeserializer"
+        "enable.auto.commit": "true"
+    snapshot-consumer:
+      topic: "telemetry.snapshots.v1"
+      poll-timeout: 100ms
+      properties:
+        "bootstrap.servers": "localhost:9092"
+        "group.id": "snapshot-group"
+        "key.deserializer": "org.apache.kafka.common.serialization.VoidDeserializer"
+        "value.deserializer": "eyeshead.smarthome.analyzer.snapshot.kafka.deserializer.SnapshotDeserializer"
+        "enable.auto.commit": "true"
+
+grpc:
+  server:
+    port: 59092
+  client:
+    hub-router:
+      address: 'discovery:///hub-router'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true

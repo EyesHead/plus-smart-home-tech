@@ -3,6 +3,8 @@ services:
     image: confluentinc/confluent-local:7.4.3
     hostname: kafka
     container_name: kafka
+    depends_on:
+      - db
     ports:
       - "9092:9092" # for client connections
       - "9101:9101" # JMX
@@ -16,6 +18,10 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
       KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       CLUSTER_ID: 'K0EA9p0yEe6MkAAAAkKsEg'
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/compose-postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
 
   kafka-init-topics:
     image: confluentinc/confluent-local:7.4.3
@@ -33,3 +39,18 @@ services:
                              --partitions 1 --replication-factor 1 --if-not-exists \
                              --bootstrap-server kafka:29092'"
     init: true
+
+  db:
+    image: postgres:latest
+    container_name: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=compose-postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10

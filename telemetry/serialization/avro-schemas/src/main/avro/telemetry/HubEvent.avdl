@@ -1,7 +1,6 @@
-@namespace("ru.yandex.practicum.kafka.telemetry.event")
+@namespace("eyeshead.smarthome.kafka.telemetry.event")
 protocol HubEventProtocol {
-
-	/** Типы устройств */
+	 /** Типы устройств */
 	enum DeviceTypeAvro {
 		MOTION_SENSOR,
 		TEMPERATURE_SENSOR,

@@ -1,0 +1,4 @@
+grpc:
+  server:
+    port: 59090
+    enable-keep-alive: true
