@@ -15,18 +15,7 @@
 
 ## 🔹 Архитектура
 
-```
-telemetry-platform/
-├── telemetry
-│ ├── collector # приём данных и запись в Kafka
-│ ├── aggregator # формирование снапшотов
-│ ├── analyzer # анализ сценариев и управление устройствами
-│ └── hub-router # тестовая эмуляция хаба
-├── infra
-│ ├── config-server # централизованная конфигурация
-│ └── discovery-server # сервис-дискавери (Eureka)
-└── commerce # сервисы поддержки продаж (пока пусто)
-```
+![Архитектура платформы](images/architecture.png)
 
 ---
 
