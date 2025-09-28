@@ -15,6 +15,7 @@
 
 ## 🔹 Архитектура
 
+```
 telemetry-platform/
 ├── telemetry
 │ ├── collector # приём данных и запись в Kafka
@@ -25,7 +26,7 @@ telemetry-platform/
 │ ├── config-server # централизованная конфигурация
 │ └── discovery-server # сервис-дискавери (Eureka)
 └── commerce # сервисы поддержки продаж (пока пусто)
-
+```
 
 ---
 
