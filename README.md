@@ -22,6 +22,7 @@
 - `telemetry.sensors.v1` — события от датчиков.
 - `telemetry.hubs.v1` — события от хабов.
 - `telemetry.snapshots.v1` — агрегированные состояния устройств.
+---
 
 ## 🔹 Сервисы
 
